@@ -14,10 +14,26 @@ let autoFish = localStorage.getItem("autoFish")
   ? parseInt(localStorage.getItem("autoFish"))
   : 0;
 
-function catchFish() {
-  fish += rodLevel;
+function fishForClick() {
+  return rodLevel + level - 1;
+}
 
-  if (fish >= level * 5) {
+function levelNeed() {
+  return level * 10;
+}
+
+function rodPrice() {
+  return rodLevel * 15;
+}
+
+function autoFishPrice() {
+  return autoFish * 25 + 25;
+}
+
+function catchFish() {
+  fish += fishForClick();
+
+  if (fish >= levelNeed()) {
     level++;
   }
 
@@ -26,8 +42,8 @@ function catchFish() {
 }
 
 function buyRod() {
-  if (fish >= 10) {
-    fish -= 10;
+  if (fish >= rodPrice()) {
+    fish -= rodPrice();
     rodLevel++;
     save();
     render();
@@ -37,8 +53,8 @@ function buyRod() {
 }
 
 function buyAutoFish() {
-  if (fish >= 20) {
-    fish -= 20;
+  if (fish >= autoFishPrice()) {
+    fish -= autoFishPrice();
     autoFish++;
     save();
     render();
@@ -68,6 +84,12 @@ function render() {
     " | ⭐ Рівень: " + level +
     " | 🎣 Вудка: " + rodLevel +
     " | 🤖 Авто: " + autoFish;
+
+  document.querySelector("button[onclick='buyRod()']").innerText =
+    "🛒 Купити вудку (" + rodPrice() + " 🐟)";
+
+  document.querySelector("button[onclick='buyAutoFish()']").innerText =
+    "🤖 Купити авто-рибалку (" + autoFishPrice() + " 🐟)";
 }
 
 setInterval(autoFishing, 3000);
