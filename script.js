@@ -9,7 +9,7 @@ let level = localStorage.getItem("level")
 function catchFish() {
   fish++;
 
-  if (fish % 5 === 0) {
+  if (fish >= level * 5) {
     level++;
   }
 
