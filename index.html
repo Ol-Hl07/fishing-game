@@ -1,16 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="uk">
 <head>
   <meta charset="UTF-8">
   <title>Fishing Game</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
 
-<h1>🎣 Fishing Game</h1>
-<button onclick="catchFish()">Ловити рибу</button>
-<p id="result"></p>
+<body style="text-align:center; font-family: Arial; padding-top:40px;">
 
-<script src="script.js"></script>
+  <h1>🎣 Fishing Game</h1>
+
+  <button onclick="catchFish()" style="font-size:20px; padding:12px 24px;">
+    🎣 Ловити рибу
+  </button>
+
+  <p id="result" style="margin-top:20px;">
+    🐟 Риба: 0 | ⭐ Рівень: 1
+  </p>
+
+  <script src="script.js"></script>
 </body>
 </html>
