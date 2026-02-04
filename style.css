@@ -1,28 +1,44 @@
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(180deg, #4facfe, #00f2fe);
+  background: linear-gradient(180deg, #1cb5e0, #000851);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Карточка гри */
 .game {
   background: #ffffff;
-  border-radius: 20px;
-  padding: 24px;
-  width: 90%;
+  border-radius: 22px;
+  padding: 22px;
+  width: 92%;
   max-width: 360px;
   text-align: center;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
 }
 
+/* Заголовок */
+.game h2 {
+  margin: 0 0 12px;
+  font-size: 24px;
+}
+
+/* Статистика */
 .stats {
-  font-size: 18px;
-  margin-bottom: 20px;
+  background: #f4f6f8;
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 16px;
+  margin-bottom: 18px;
 }
 
+/* Кнопки */
 .btn {
   width: 100%;
   padding: 14px;
@@ -30,11 +46,25 @@ body {
   font-size: 16px;
   border: none;
   border-radius: 14px;
-  background: #eaeaea;
+  background: #e9ecef;
+  cursor: pointer;
+  transition: transform 0.05s ease, background 0.2s ease;
 }
 
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Головна кнопка */
 .btn.main {
-  background: #ffcc00;
+  background: linear-gradient(135deg, #ffd000, #ff9f00);
   font-size: 18px;
-  font-weight: bold;
+  font-weight: 700;
+}
+
+/* Кнопка магазину */
+.btn.shop {
+  background: linear-gradient(135deg, #6ae3ff, #4facfe);
+  color: #fff;
+  font-weight: 600;
 }
