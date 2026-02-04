@@ -6,27 +6,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
   <div class="game">
-    <h1>🎣 Fishing Game</h1>
+    <h2>🎣 Рибалка</h2>
 
     <div id="result" class="stats">
-      🐟 Риба: 0 | ⭐ Рівень: 1
+      🐟 Риба: 0 | ⭐ Рівень: 1 | 🎣 Вудка: 1
     </div>
 
-    <button onclick="catchFish()" class="btn main">
-      🎣 Ловити рибу
-    </button>
+    <button class="btn main" onclick="catchFish()">🎣 Ловити рибу</button>
 
-    <button onclick="buyRod()" class="btn">
-      🛒 Купити вудку
-    </button>
-
-    <button onclick="buyAutoFish()" class="btn">
-      🤖 Купити авто-рибалку
-    </button>
+    <button class="btn" onclick="buyRod()">🛒 Купити вудку (10 🐟)</button>
   </div>
 
   <script src="script.js"></script>
