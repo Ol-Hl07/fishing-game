@@ -10,87 +10,154 @@ body {
   margin: 0;
   font-family: system-ui, sans-serif;
   background: url("https://images.unsplash.com/photo-1502082553048-f009c37129b9") center/cover no-repeat;
-  min-height: 100vh;
 }
-
 .overlay {
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.4);
   min-height: 100vh;
   padding: 12px;
 }
-
 .header {
   text-align: center;
   color: #fff;
   font-size: 26px;
   font-weight: 700;
-  margin-bottom: 16px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  margin-bottom: 12px;
 }
-
 .menu {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(3,1fr);
+  gap: 10px;
   max-width: 420px;
   margin: 0 auto;
 }
-
 .menu-btn {
   background: linear-gradient(#8b5a2b, #5c3a1e);
   border-radius: 14px;
   padding: 12px 6px;
   text-align: center;
   color: #fff;
-  font-size: 14px;
   font-weight: 600;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.2),
-              0 4px 8px rgba(0,0,0,0.4);
 }
-
 .menu-btn span {
   display: block;
   font-size: 26px;
-  margin-bottom: 6px;
 }
-
-.footer {
-  text-align: center;
-  color: #fff;
-  font-size: 14px;
-  margin-top: 20px;
-  opacity: 0.9;
+.screen {
+  display: none;
+  max-width: 420px;
+  margin: 12px auto 0;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
 }
+.screen.active { display: block; }
+button {
+  width: 100%;
+  padding: 14px;
+  margin: 6px 0;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+}
+.primary { background:#ffd000; font-weight:700; }
+.gray { background:#eee; }
 </style>
 </head>
 
 <body>
-
 <div class="overlay">
 
-  <div class="header">
-    🎣 РИБАЛКА
-  </div>
+<div class="header">🎣 РИБАЛКА</div>
 
-  <div class="menu">
-    <div class="menu-btn"><span>🎣</span>Рибалка</div>
-    <div class="menu-btn"><span>🗺</span>Локації</div>
-    <div class="menu-btn"><span>🎒</span>Інвентар</div>
+<!-- МЕНЮ -->
+<div class="menu">
+  <div class="menu-btn" onclick="openScreen('fishing')"><span>🎣</span>Рибалка</div>
+  <div class="menu-btn" onclick="openScreen('inventory')"><span>🎒</span>Інвентар</div>
+  <div class="menu-btn" onclick="openScreen('shop')"><span>🛒</span>Магазин</div>
+  <div class="menu-btn" onclick="openScreen('locations')"><span>🗺</span>Локації</div>
+  <div class="menu-btn" onclick="openScreen('stats')"><span>📖</span>Статистика</div>
+  <div class="menu-btn" onclick="openScreen('menu')"><span>⬅️</span>Назад</div>
+</div>
 
-    <div class="menu-btn"><span>🛒</span>Магазин</div>
-    <div class="menu-btn"><span>📖</span>Щоденник</div>
-    <div class="menu-btn"><span>⚙️</span>Налаштування</div>
+<!-- ЕКРАНИ -->
+<div id="fishing" class="screen">
+  <h3>🎣 Рибалка</h3>
+  <button class="primary" onclick="catchFish()">Закинути вудку</button>
+  <button class="gray" onclick="sellFish()">Продати всю рибу</button>
+  <div id="catch"></div>
+</div>
 
-    <div class="menu-btn"><span>🏆</span>Рейтинг</div>
-    <div class="menu-btn"><span>💎</span>TON</div>
-    <div class="menu-btn"><span>🚪</span>Вихід</div>
-  </div>
+<div id="inventory" class="screen">
+  <h3>🎒 Інвентар</h3>
+  <div id="inv"></div>
+</div>
 
-  <div class="footer">
-    Fishing Simulator • Mobile Edition
-  </div>
+<div id="shop" class="screen">
+  <h3>🛒 Магазин</h3>
+  <button class="gray" onclick="buyRod()">🎣 Купити кращу вудку (50🪙)</button>
+</div>
+
+<div id="locations" class="screen">
+  <h3>🗺 Локації</h3>
+  <button class="gray">🌊 Озеро</button>
+  <button class="gray" disabled>🌅 Річка (lvl 3)</button>
+</div>
+
+<div id="stats" class="screen">
+  <h3>📖 Статистика</h3>
+  <div id="stats"></div>
+</div>
 
 </div>
 
+<script>
+let player = {
+  fish: {},
+  coins: 0,
+  rod: 1
+};
+
+function openScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  if (document.getElementById(id))
+    document.getElementById(id).classList.add("active");
+}
+
+function catchFish() {
+  const fish = ["Карась","Окунь","Короп"][Math.floor(Math.random()*3)];
+  player.fish[fish] = (player.fish[fish]||0)+1;
+  document.getElementById("catch").innerText = "🎣 Спіймав: "+fish;
+  render();
+}
+
+function sellFish() {
+  let total = 0;
+  for (let f in player.fish) total += player.fish[f];
+  player.coins += total;
+  player.fish = {};
+  render();
+}
+
+function buyRod() {
+  if (player.coins >= 50) {
+    player.coins -= 50;
+    player.rod++;
+    alert("🎣 Вудку покращено!");
+    render();
+  }
+}
+
+function render() {
+  document.getElementById("inv").innerHTML =
+    Object.keys(player.fish).length
+      ? Object.entries(player.fish).map(([k,v])=>`${k}: ${v}`).join("<br>")
+      : "Порожньо";
+
+  document.getElementById("stats").innerHTML =
+    `🪙 Монети: ${player.coins}<br>🎣 Рівень вудки: ${player.rod}`;
+}
+
+render();
+</script>
 </body>
 </html>
