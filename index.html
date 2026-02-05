@@ -52,6 +52,7 @@ button{
 .primary{background:#ffd000;font-weight:700}
 .gray{background:#eee}
 .locked{background:#ddd;color:#888}
+.ton{background:#7c5cff;color:#fff;font-weight:700}
 </style>
 </head>
 
@@ -74,13 +75,13 @@ button{
 <div id="fishing" class="screen">
   <h3>🎣 Рибалка — <span id="locName"></span></h3>
   <button class="primary" onclick="catchFish()">Закинути вудку</button>
-  <button class="gray" onclick="sellFish()">💰 Продати всю рибу</button>
+  <button class="gray" onclick="sellFish()">💰 Продати рибу</button>
   <div id="catch"></div>
 </div>
 
 <!-- ІНВЕНТАР -->
 <div id="inventory" class="screen">
-  <h3>🎒 Інвентар (риба)</h3>
+  <h3>🎒 Інвентар</h3>
   <div id="inv"></div>
 </div>
 
@@ -92,7 +93,7 @@ button{
 
 <!-- МАГАЗИН -->
 <div id="shop" class="screen">
-  <h3>🛒 Магазин (вудки)</h3>
+  <h3>🛒 Магазин</h3>
   <div id="shopList"></div>
 </div>
 
@@ -108,16 +109,19 @@ button{
 let player={
   fish:{},
   coins:0,
+  tons:0,
   level:1,
   location:0,
-  rod:0
+  rod:0,
+  lastTonCatch:0
 };
 
 const rods=[
   {name:"Стара вудка",power:1,price:0},
-  {name:"Добра вудка",power:2,price:5},
-  {name:"Профі вудка",power:3,price:15},
-  {name:"Турбо вудка",power:4,price:40}
+  {name:"Добра вудка",power:2,price:50},
+  {name:"Профі вудка",power:3,price:250},
+  {name:"Турбо вудка",power:4,price:500},
+  {name:"Легендарна вудка",power:5,tonPrice:15,legendary:true}
 ];
 
 const locations=[
@@ -138,8 +142,7 @@ const locations=[
     {name:"Марлін",weight:2}
   ]},
   {name:"🌊 Океан",level:15,fish:[
-    {name:"Акула",weight:1},
-    {name:"Легендарний кит",weight:1,bonus:5}
+    {name:"Акула",weight:1}
   ]}
 ];
 
@@ -149,11 +152,23 @@ function openScreen(id){
 }
 
 function catchFish(){
-  const loc=locations[player.location];
-  const power=rods[player.rod].power;
-  const index=Math.min(Math.floor(Math.random()*power),loc.fish.length-1);
-  const fish=loc.fish[index];
+  const now=Date.now();
+  const rod=rods[player.rod];
 
+  // ЛЕГЕНДАРНИЙ ШАНС (1 раз на день)
+  if(rod.legendary && now-player.lastTonCatch>86400000){
+    if(Math.random()<0.10){
+      player.lastTonCatch=now;
+      player.fish["💎 TON-риба"]=(player.fish["💎 TON-риба"]||0)+1;
+      document.getElementById("catch").innerText="💎 Спіймав TON-рибу!";
+      render();
+      return;
+    }
+  }
+
+  const loc=locations[player.location];
+  const index=Math.min(Math.floor(Math.random()*rod.power),loc.fish.length-1);
+  const fish=loc.fish[index];
   player.fish[fish.name]=(player.fish[fish.name]||0)+1;
   document.getElementById("catch").innerText=`🎣 Спіймав: ${fish.name}`;
   render();
@@ -161,22 +176,31 @@ function catchFish(){
 
 function sellFish(){
   let coins=0;
+  let tons=0;
+
   for(let name in player.fish){
     let count=player.fish[name];
+
+    if(name==="💎 TON-риба"){
+      tons+=count;
+      continue;
+    }
+
     for(let l of locations){
       let f=l.fish.find(x=>x.name===name);
       if(f){
-        let earned=Math.floor(count/f.weight);
-        coins+=earned;
-        if(f.bonus) coins+=earned*f.bonus;
+        coins+=Math.floor(count/f.weight);
       }
     }
   }
+
   player.coins+=coins;
+  player.tons+=tons;
   player.fish={};
+
   if(player.coins>=player.level*10) player.level++;
   document.getElementById("catch").innerText=
-    coins?`💰 Продано → +${coins} монет`:"❌ Недостатньо риби";
+    `💰 +${coins} монет | 💎 +${tons} TON`;
   render();
 }
 
@@ -189,8 +213,13 @@ function changeLocation(i){
 }
 
 function buyRod(i){
-  if(player.coins>=rods[i].price){
-    player.coins-=rods[i].price;
+  const r=rods[i];
+  if(r.tonPrice){
+    alert("💎 Купівля за TON буде підключена пізніше");
+    return;
+  }
+  if(player.coins>=r.price){
+    player.coins-=r.price;
     player.rod=i;
     render();
   }
@@ -213,13 +242,14 @@ function render(){
 
   document.getElementById("shopList").innerHTML=
     rods.map((r,i)=>
-      `<button class="gray" onclick="buyRod(${i})">
-        ${r.name} — ${r.price} 🪙
-      </button>`
+      r.tonPrice
+        ? `<button class="ton">💎 ${r.name} — ${r.tonPrice} TON</button>`
+        : `<button class="gray" onclick="buyRod(${i})">${r.name} — ${r.price} 🪙</button>`
     ).join("");
 
   document.getElementById("statsText").innerHTML=
     `🪙 Монети: ${player.coins}<br>
+     💎 TON: ${player.tons}<br>
      ⭐ Рівень: ${player.level}<br>
      🎣 Вудка: ${rods[player.rod].name}<br>
      📍 Локація: ${locations[player.location].name}`;
