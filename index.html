@@ -9,180 +9,88 @@
 body {
   margin: 0;
   font-family: system-ui, sans-serif;
-  background: linear-gradient(#1cb5e0, #000851);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: url("https://images.unsplash.com/photo-1502082553048-f009c37129b9") center/cover no-repeat;
   min-height: 100vh;
 }
 
-.card {
-  background: #fff;
-  width: 95%;
-  max-width: 420px;
-  border-radius: 22px;
-  padding: 18px;
-}
-
-h2 {
-  text-align: center;
-  margin-top: 0;
-}
-
-.stats {
-  background: #f1f3f6;
+.overlay {
+  background: rgba(0,0,0,0.35);
+  min-height: 100vh;
   padding: 12px;
-  border-radius: 14px;
-  margin-bottom: 10px;
-  font-size: 15px;
+}
+
+.header {
   text-align: center;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
 }
 
-button {
-  width: 100%;
-  padding: 14px;
-  margin: 6px 0;
-  border: none;
-  border-radius: 14px;
-  font-size: 16px;
+.menu {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 420px;
+  margin: 0 auto;
 }
 
-.primary { background: #ffd000; font-weight: 700; }
-.gray { background: #eaeaea; }
-.locked { background:#ddd; color:#888; }
-
-.box {
-  background: #f7f7f7;
+.menu-btn {
+  background: linear-gradient(#8b5a2b, #5c3a1e);
   border-radius: 14px;
-  padding: 10px;
-  margin-top: 8px;
+  padding: 12px 6px;
+  text-align: center;
+  color: #fff;
   font-size: 14px;
+  font-weight: 600;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.2),
+              0 4px 8px rgba(0,0,0,0.4);
+}
+
+.menu-btn span {
+  display: block;
+  font-size: 26px;
+  margin-bottom: 6px;
+}
+
+.footer {
+  text-align: center;
+  color: #fff;
+  font-size: 14px;
+  margin-top: 20px;
+  opacity: 0.9;
 }
 </style>
 </head>
 
 <body>
 
-<div class="card">
-  <h2>🎣 Рибалка</h2>
+<div class="overlay">
 
-  <div class="stats" id="stats"></div>
+  <div class="header">
+    🎣 РИБАЛКА
+  </div>
 
-  <button class="primary" onclick="catchFish()">🎣 Закинути вудку</button>
-  <button class="gray" onclick="sellFish()">💰 Продати всю рибу</button>
+  <div class="menu">
+    <div class="menu-btn"><span>🎣</span>Рибалка</div>
+    <div class="menu-btn"><span>🗺</span>Локації</div>
+    <div class="menu-btn"><span>🎒</span>Інвентар</div>
 
-  <div class="box" id="catch"></div>
-  <div class="box" id="inventory"></div>
-  <div class="box" id="locations"></div>
+    <div class="menu-btn"><span>🛒</span>Магазин</div>
+    <div class="menu-btn"><span>📖</span>Щоденник</div>
+    <div class="menu-btn"><span>⚙️</span>Налаштування</div>
+
+    <div class="menu-btn"><span>🏆</span>Рейтинг</div>
+    <div class="menu-btn"><span>💎</span>TON</div>
+    <div class="menu-btn"><span>🚪</span>Вихід</div>
+  </div>
+
+  <div class="footer">
+    Fishing Simulator • Mobile Edition
+  </div>
+
 </div>
-
-<script>
-let player = {
-  fishBag: {},
-  coins: 0,
-  level: 1,
-  location: 0
-};
-
-const locations = [
-  {
-    name: "🌊 Озеро",
-    level: 1,
-    fish: [
-      { name: "Карась", price: 1 },
-      { name: "Окунь", price: 2 }
-    ]
-  },
-  {
-    name: "🌅 Річка",
-    level: 3,
-    fish: [
-      { name: "Короп", price: 3 },
-      { name: "Щука", price: 6 }
-    ]
-  },
-  {
-    name: "🌌 Море",
-    level: 6,
-    fish: [
-      { name: "Тунець", price: 10 },
-      { name: "Акула", price: 20 }
-    ]
-  }
-];
-
-function catchFish() {
-  const loc = locations[player.location];
-  const fish = loc.fish[Math.floor(Math.random() * loc.fish.length)];
-
-  player.fishBag[fish.name] =
-    (player.fishBag[fish.name] || 0) + 1;
-
-  document.getElementById("catch").innerText =
-    `🎣 Спіймав: ${fish.name} (+${fish.price}🪙)`;
-
-  if (player.coins + totalFishValue() >= player.level * 10) {
-    player.level++;
-  }
-
-  render();
-}
-
-function totalFishValue() {
-  let sum = 0;
-  for (let name in player.fishBag) {
-    for (let loc of locations) {
-      const f = loc.fish.find(x => x.name === name);
-      if (f) sum += f.price * player.fishBag[name];
-    }
-  }
-  return sum;
-}
-
-function sellFish() {
-  let total = totalFishValue();
-  player.coins += total;
-  player.fishBag = {};
-
-  document.getElementById("catch").innerText =
-    total > 0
-      ? `💰 Продано на ${total} монет`
-      : "❌ Немає риби для продажу";
-
-  render();
-}
-
-function changeLocation(i) {
-  if (player.level >= locations[i].level) {
-    player.location = i;
-    document.getElementById("catch").innerText =
-      `📍 Локація: ${locations[i].name}`;
-    render();
-  }
-}
-
-function render() {
-  document.getElementById("stats").innerHTML =
-    `🪙 Монети: <b>${player.coins}</b> | ⭐ Рівень: ${player.level} | 📍 ${locations[player.location].name}`;
-
-  const inv = Object.entries(player.fishBag);
-  document.getElementById("inventory").innerHTML =
-    `<b>🎒 Риба:</b><br>` +
-    (inv.length
-      ? inv.map(([k,v]) => `${k}: ${v}`).join("<br>")
-      : "Порожньо");
-
-  document.getElementById("locations").innerHTML =
-    `<b>🗺 Локації:</b><br>` +
-    locations.map((l,i) =>
-      player.level >= l.level
-        ? `<button class="gray" onclick="changeLocation(${i})">${l.name}</button>`
-        : `<button class="locked">${l.name} (lvl ${l.level})</button>`
-    ).join("");
-}
-
-render();
-</script>
 
 </body>
 </html>
