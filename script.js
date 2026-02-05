@@ -1,4 +1,24 @@
-let fish = localStorage.getItem("fish")
+let player = {
+  fish: 55,
+  level: 7,
+  rod: 1,
+  gear: [],
+  bait: null
+};
+
+const rods = [
+  { id: 1, name: "Стара вудка", bonus: 1, rare: 0, price: 0 },
+  { id: 2, name: "Деревʼяна вудка", bonus: 2, rare: 5, price: 45 },
+  { id: 3, name: "Профі вудка", bonus: 3, rare: 15, price: 120 }
+];
+
+const gearList = [
+  { id: 1, name: "Простий гачок", rare: 2, price: 20 }
+];
+
+const baitList = [
+  { id: 1, name: "Червʼяк", chance: 10, uses: 5, price: 15 }
+];let fish = localStorage.getItem("fish")
   ? parseInt(localStorage.getItem("fish"))
   : 0;
 
