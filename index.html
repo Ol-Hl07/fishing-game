@@ -4,47 +4,191 @@
 <meta charset="UTF-8">
 <title>🎣 Рибалка</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
+
+<style>
+*{box-sizing:border-box;font-family:system-ui}
+body{
+  margin:0;
+  min-height:100vh;
+  background-size:cover;
+  background-position:center;
+  color:#fff;
+}
+.overlay{
+  background:rgba(0,0,0,.55);
+  min-height:100vh;
+  padding-bottom:80px;
+}
+.header{
+  text-align:center;
+  font-size:26px;
+  padding:14px;
+  font-weight:700;
+}
+.panel{
+  max-width:420px;
+  margin:0 auto;
+  background:rgba(255,255,255,.12);
+  border-radius:18px;
+  padding:16px;
+}
+button{
+  width:100%;
+  border:none;
+  border-radius:14px;
+  padding:14px;
+  font-size:16px;
+  margin:6px 0;
+}
+.primary{background:#ffd400}
+.gray{background:#ddd}
+.ton{background:#6cf}
+.lock{background:#777}
+.navbar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#111;
+  display:flex;
+}
+.navbar div{
+  flex:1;
+  text-align:center;
+  padding:10px;
+  font-size:14px;
+}
+.screen{display:none}
+.screen.active{display:block}
+
+/* animation */
+.rod{
+  position:fixed;
+  right:-60px;
+  top:35%;
+  font-size:50px;
+  transition:.5s;
+}
+.rod.cast{right:20px;transform:rotate(-30deg)}
+.float{
+  position:fixed;
+  top:55%;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:26px;
+  opacity:0;
+}
+.float.show{opacity:1}
+</style>
 </head>
 
 <body>
 <div class="overlay">
   <div class="header">🎣 Рибалка</div>
 
-  <div id="fishing" class="screen active">
-    <h3 id="locName"></h3>
-    <button class="primary" onclick="catchFish()">🎣 Закинути вудку</button>
-    <button class="gray" onclick="sellFish()">💰 Продати рибу</button>
-    <div id="catch"></div>
+  <div class="panel screen active" id="game">
+    <div id="locationName"></div>
+    <button class="primary" onclick="cast()">🎣 Закинути вудку</button>
+    <button class="gray" onclick="sell()">💰 Продати всю рибу</button>
+    <div id="log"></div>
   </div>
 
-  <div id="inventory" class="screen">
-    <h3>🎒 Інвентар</h3>
-    <div id="inv"></div>
-  </div>
-
-  <div id="locations" class="screen">
-    <h3>🗺 Локації</h3>
-    <div id="locList"></div>
-  </div>
-
-  <div id="stats" class="screen">
-    <h3>📖 Статистика / Магазин</h3>
-    <div id="statsText"></div>
-  </div>
+  <div class="panel screen" id="inventory"></div>
+  <div class="panel screen" id="shop"></div>
+  <div class="panel screen" id="locations"></div>
 </div>
 
-<div class="water"><div class="wave"></div></div>
-<div class="rod">🎣</div>
-<div class="float">🎈</div>
+<div class="rod" id="rod">🎣</div>
+<div class="float" id="float">🎈</div>
 
 <div class="navbar">
-  <div class="nav-btn" onclick="openScreen('fishing')"><span>🎣</span>Ловля</div>
-  <div class="nav-btn" onclick="openScreen('inventory')"><span>🎒</span>Інв.</div>
-  <div class="nav-btn" onclick="openScreen('locations')"><span>🗺</span>Мапа</div>
-  <div class="nav-btn" onclick="openScreen('stats')"><span>📖</span>Стат.</div>
+  <div onclick="openScreen('game')">🎣<br>Гра</div>
+  <div onclick="openScreen('inventory')">🎒<br>Інв.</div>
+  <div onclick="openScreen('shop')">🛒<br>Маг.</div>
+  <div onclick="openScreen('locations')">🗺<br>Мапа</div>
 </div>
 
-<script src="script.js"></script>
+<script>
+const locations=[
+ {name:"🌊 Озеро",bg:"https://images.unsplash.com/photo-1502082553048-f009c37129b9",
+  fish:[{n:"Карась",v:10},{n:"Окунь",v:8}]},
+ {name:"🏞 Річка",bg:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+  fish:[{n:"Короп",v:8},{n:"Щука",v:5}]},
+ {name:"🌲 Ліс",bg:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+  fish:[{n:"Лин",v:8},{n:"Лящ",v:5}]},
+ {name:"🌅 Море",bg:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+  fish:[{n:"Тунець",v:5},{n:"Марлін",v:3}]},
+ {name:"🌌 Глибина",bg:"https://images.unsplash.com/photo-1500534314209-a26db0f5c3b1",
+  fish:[{n:"💎 TON-риба",ton:1,legend:true}]}
+];
+
+let game=JSON.parse(localStorage.getItem("fishGame"))||{
+ loc:0, fish:{}, coins:0, tons:0, rod:0
+};
+
+function save(){localStorage.setItem("fishGame",JSON.stringify(game))}
+function bg(){document.body.style.backgroundImage=`url('${locations[game.loc].bg}')`}
+bg();
+
+function openScreen(id){
+ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ render();
+}
+
+function cast(){
+ document.getElementById("rod").classList.add("cast");
+ document.getElementById("float").classList.add("show");
+ setTimeout(()=>{
+  const list=locations[game.loc].fish;
+  const f=list[Math.floor(Math.random()*list.length)];
+  if(f.legend && Math.random()<0.1){
+    game.tons+=1;
+    log("💎 Спіймав TON-рибу!");
+  }else{
+    game.fish[f.n]=(game.fish[f.n]||0)+1;
+    log("🎣 Спіймав "+f.n);
+  }
+  save();
+  render();
+  document.getElementById("rod").classList.remove("cast");
+  document.getElementById("float").classList.remove("show");
+ },1200);
+}
+
+function sell(){
+ let earned=0;
+ for(let k in game.fish){
+  const f=locations.flatMap(l=>l.fish).find(x=>x.n===k);
+  if(f && f.v) earned+=Math.floor(game.fish[k]/f.v);
+ }
+ game.coins+=earned;
+ game.fish={};
+ log("💰 Заробив "+earned+" монет");
+ save();render();
+}
+
+function render(){
+ document.getElementById("locationName").innerHTML=
+  `<b>${locations[game.loc].name}</b><br>🪙 ${game.coins} | 💎 ${game.tons}`;
+
+ document.getElementById("inventory").innerHTML=
+  "<h3>🎒 Інвентар</h3>"+
+  (Object.keys(game.fish).length?
+   Object.entries(game.fish).map(e=>e[0]+": "+e[1]).join("<br>")
+   :"Порожньо");
+
+ document.getElementById("locations").innerHTML=
+  "<h3>🗺 Локації</h3>"+
+  locations.map((l,i)=>`<button onclick="game.loc=${i};bg();openScreen('game')">${l.name}</button>`).join("");
+
+ document.getElementById("shop").innerHTML=
+  "<h3>🛒 Магазин</h3>"+
+  "<div>💎 TON використовується для рідкісної риби</div>";
+}
+
+function log(t){document.getElementById("log").innerText=t}
+render();
+</script>
 </body>
 </html>
