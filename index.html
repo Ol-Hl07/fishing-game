@@ -21,7 +21,7 @@ body {
   width: 95%;
   max-width: 420px;
   border-radius: 22px;
-  padding: 20px;
+  padding: 18px;
 }
 
 h2 {
@@ -49,6 +49,7 @@ button {
 
 .primary { background: #ffd000; font-weight: 700; }
 .gray { background: #eaeaea; }
+.locked { background:#ddd; color:#888; }
 
 .box {
   background: #f7f7f7;
@@ -65,75 +66,119 @@ button {
 <div class="card">
   <h2>🎣 Рибалка</h2>
 
-  <div class="stats" id="stats">Завантаження...</div>
+  <div class="stats" id="stats"></div>
 
   <button class="primary" onclick="catchFish()">🎣 Закинути вудку</button>
   <button class="gray" onclick="sellFish()">💰 Продати всю рибу</button>
 
-  <div class="box" id="catch">🎣 Ще нічого не зловлено</div>
+  <div class="box" id="catch"></div>
   <div class="box" id="inventory"></div>
+  <div class="box" id="locations"></div>
 </div>
 
 <script>
 let player = {
   fishBag: {},
   coins: 0,
-  rod: 0
+  level: 1,
+  location: 0
 };
 
-const fishTypes = [
-  { name: "Карась", price: 1 },
-  { name: "Короп", price: 3 },
-  { name: "Щука", price: 6 },
-  { name: "Легендарна риба", price: 20 }
-];
-
-const rods = [
-  { name: "Стара вудка", chance: 1 },
-  { name: "Міцна вудка", chance: 2 },
-  { name: "Профі вудка", chance: 3 }
+const locations = [
+  {
+    name: "🌊 Озеро",
+    level: 1,
+    fish: [
+      { name: "Карась", price: 1 },
+      { name: "Окунь", price: 2 }
+    ]
+  },
+  {
+    name: "🌅 Річка",
+    level: 3,
+    fish: [
+      { name: "Короп", price: 3 },
+      { name: "Щука", price: 6 }
+    ]
+  },
+  {
+    name: "🌌 Море",
+    level: 6,
+    fish: [
+      { name: "Тунець", price: 10 },
+      { name: "Акула", price: 20 }
+    ]
+  }
 ];
 
 function catchFish() {
-  const max = rods[player.rod].chance;
-  const roll = Math.floor(Math.random() * fishTypes.length);
-  const fish = fishTypes[Math.min(roll, max)];
+  const loc = locations[player.location];
+  const fish = loc.fish[Math.floor(Math.random() * loc.fish.length)];
 
-  player.fishBag[fish.name] = (player.fishBag[fish.name] || 0) + 1;
+  player.fishBag[fish.name] =
+    (player.fishBag[fish.name] || 0) + 1;
 
   document.getElementById("catch").innerText =
     `🎣 Спіймав: ${fish.name} (+${fish.price}🪙)`;
 
+  if (player.coins + totalFishValue() >= player.level * 10) {
+    player.level++;
+  }
+
   render();
 }
 
-function sellFish() {
-  let total = 0;
-
+function totalFishValue() {
+  let sum = 0;
   for (let name in player.fishBag) {
-    const fish = fishTypes.find(f => f.name === name);
-    total += fish.price * player.fishBag[name];
+    for (let loc of locations) {
+      const f = loc.fish.find(x => x.name === name);
+      if (f) sum += f.price * player.fishBag[name];
+    }
   }
+  return sum;
+}
 
+function sellFish() {
+  let total = totalFishValue();
   player.coins += total;
   player.fishBag = {};
 
   document.getElementById("catch").innerText =
-    total > 0 ? `💰 Продано на ${total} монет` : "❌ Немає риби для продажу";
+    total > 0
+      ? `💰 Продано на ${total} монет`
+      : "❌ Немає риби для продажу";
 
   render();
 }
 
+function changeLocation(i) {
+  if (player.level >= locations[i].level) {
+    player.location = i;
+    document.getElementById("catch").innerText =
+      `📍 Локація: ${locations[i].name}`;
+    render();
+  }
+}
+
 function render() {
   document.getElementById("stats").innerHTML =
-    `🪙 Монети: <b>${player.coins}</b> | 🎣 Вудка: ${rods[player.rod].name}`;
+    `🪙 Монети: <b>${player.coins}</b> | ⭐ Рівень: ${player.level} | 📍 ${locations[player.location].name}`;
 
   const inv = Object.entries(player.fishBag);
   document.getElementById("inventory").innerHTML =
-    `<b>🎒 Риба в рюкзаку:</b><br>` +
+    `<b>🎒 Риба:</b><br>` +
     (inv.length
       ? inv.map(([k,v]) => `${k}: ${v}`).join("<br>")
       : "Порожньо");
+
+  document.getElementById("locations").innerHTML =
+    `<b>🗺 Локації:</b><br>` +
+    locations.map((l,i) =>
+      player.level >= l.level
+        ? `<button class="gray" onclick="changeLocation(${i})">${l.name}</button>`
+        : `<button class="locked">${l.name} (lvl ${l.level})</button>`
+    ).join("");
 }
 
 render();
