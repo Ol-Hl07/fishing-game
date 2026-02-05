@@ -10,106 +10,109 @@ function saveGame(){
 /* ===== PLAYER ===== */
 let player = loadGame() || {
   fish:{},
-  tonFish:0,
   coins:0,
-  tons:0,
   level:1,
-  location:0,
-  rod:0,
-  bait:0,
-  feed:0,
-  gear:{ landingNet:false },
-  lastTonCatch:0
+  location:0
 };
 
-/* ===== DATA ===== */
+/* ===== LOCATIONS ===== */
 const locations=[
   {
     name:"🌊 Озеро",
-    level:1,
     bg:"https://images.unsplash.com/photo-1502082553048-f009c37129b9",
-    fish:[{name:"Карась",weight:10},{name:"Окунь",weight:9}]
-  },
-  {
-    name:"🌿 Ставок",
-    level:3,
-    bg:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-    fish:[{name:"Лин",weight:8},{name:"Карась великий",weight:7}]
+    fish:["Карась","Окунь"]
   },
   {
     name:"🌅 Річка",
-    level:6,
     bg:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
-    fish:[{name:"Короп",weight:6},{name:"Щука",weight:5}]
+    fish:["Короп","Щука"]
   },
   {
     name:"🌌 Море",
-    level:10,
     bg:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-    fish:[{name:"Тунець",weight:3},{name:"Марлін",weight:2}]
-  },
-  {
-    name:"🌊 Океан",
-    level:15,
-    bg:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-    fish:[{name:"Акула",weight:1}]
+    fish:["Тунець","Марлін"]
   }
 ];
 
 /* ===== UI ===== */
-function openScreen(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
+const rodEl = document.createElement("div");
+rodEl.className = "rod";
+rodEl.innerText = "🎣";
+document.body.appendChild(rodEl);
+
+const floatEl = document.createElement("div");
+floatEl.className = "float";
+floatEl.innerText = "🎈";
+document.body.appendChild(floatEl);
+
+const water = document.createElement("div");
+water.className = "water";
+water.innerHTML = `<div class="wave"></div>`;
+document.body.appendChild(water);
 
 function setBackground(){
   document.body.style.backgroundImage =
     `url('${locations[player.location].bg}')`;
 }
 
-/* ===== GAME (СПРОЩЕНА ДЛЯ UI-ТЕСТУ) ===== */
+function openScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* ===== АНИМАЦИЯ ЛОВЛИ ===== */
 function catchFish(){
-  const f=locations[player.location].fish;
-  const fish=f[Math.floor(Math.random()*f.length)];
-  player.fish[fish.name]=(player.fish[fish.name]||0)+1;
-  document.getElementById("catch").innerText=`🎣 Спіймав: ${fish.name}`;
-  saveGame(); render();
+  rodEl.classList.add("cast");
+  floatEl.classList.add("show");
+
+  setTimeout(()=>{
+    const f = locations[player.location].fish;
+    const fish = f[Math.floor(Math.random()*f.length)];
+    player.fish[fish] = (player.fish[fish]||0)+1;
+    document.getElementById("catch").innerText =
+      `🎣 Спіймав: ${fish}`;
+
+    rodEl.classList.remove("cast");
+    floatEl.classList.remove("show");
+
+    saveGame();
+    render();
+  },1500);
 }
 
 function sellFish(){
-  let total=0;
-  for(let k in player.fish) total+=player.fish[k];
-  player.coins+=Math.floor(total/5);
-  player.fish={};
-  document.getElementById("catch").innerText=`💰 Продано`;
-  saveGame(); render();
+  let total = 0;
+  for(let k in player.fish) total += player.fish[k];
+  player.coins += Math.floor(total/5);
+  player.fish = {};
+  document.getElementById("catch").innerText = "💰 Продано";
+  saveGame();
+  render();
 }
 
 function changeLocation(i){
-  if(player.level>=locations[i].level){
-    player.location=i;
-    setBackground();
-    openScreen("fishing");
-  }
-  saveGame(); render();
+  player.location=i;
+  setBackground();
+  openScreen("fishing");
+  saveGame();
+  render();
 }
 
 function render(){
-  document.getElementById("locName").innerText=locations[player.location].name;
+  document.getElementById("locName").innerText =
+    locations[player.location].name;
 
-  document.getElementById("inv").innerHTML=
+  document.getElementById("inv").innerHTML =
     Object.keys(player.fish).length
       ? Object.entries(player.fish).map(([k,v])=>`${k}: ${v}`).join("<br>")
       : "Порожньо";
 
-  document.getElementById("locList").innerHTML=
+  document.getElementById("locList").innerHTML =
     locations.map((l,i)=>
-      player.level>=l.level
-        ? `<button class="gray" onclick="changeLocation(${i})">${l.name}</button>`
-        : `<button class="locked">${l.name} (lvl ${l.level})</button>`
+      `<button class="gray" onclick="changeLocation(${i})">${l.name}</button>`
     ).join("");
 
-  document.getElementById("statsText").innerHTML=
+  document.getElementById("statsText").innerHTML =
     `🪙 Монети: ${player.coins}<br>
      📍 Локація: ${locations[player.location].name}`;
 }
