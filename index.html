@@ -94,7 +94,10 @@ button{
 <!-- МАГАЗИН -->
 <div id="shop" class="screen">
   <h3>🛒 Магазин</h3>
-  <div id="shopList"></div>
+  <h4>🎣 Вудки</h4>
+  <div id="shopRods"></div>
+  <h4>🧰 Снасті</h4>
+  <div id="shopGear"></div>
 </div>
 
 <!-- СТАТИСТИКА -->
@@ -106,16 +109,16 @@ button{
 </div>
 
 <script>
-/* ===== ЗБЕРЕЖЕННЯ ===== */
+/* ===== SAVE / LOAD ===== */
 function loadGame(){
-  const data=localStorage.getItem("fishingGame");
-  return data?JSON.parse(data):null;
+  const d=localStorage.getItem("fishingGame");
+  return d?JSON.parse(d):null;
 }
 function saveGame(){
   localStorage.setItem("fishingGame",JSON.stringify(player));
 }
 
-/* ===== ДАНІ ГРАВЦЯ ===== */
+/* ===== PLAYER ===== */
 let player=loadGame()||{
   fish:{},
   coins:0,
@@ -123,10 +126,13 @@ let player=loadGame()||{
   level:1,
   location:0,
   rod:0,
+  gear:{
+    landingNet:false
+  },
   lastTonCatch:0
 };
 
-/* ===== ВУДКИ ===== */
+/* ===== RODS ===== */
 const rods=[
   {name:"Стара вудка",power:1,price:0},
   {name:"Добра вудка",power:2,price:50},
@@ -135,7 +141,18 @@ const rods=[
   {name:"Легендарна вудка",power:5,tonPrice:15,legendary:true}
 ];
 
-/* ===== ЛОКАЦІЇ ===== */
+/* ===== GEAR ===== */
+const gearItems=[
+  {
+    id:"landingNet",
+    name:"Підсака",
+    tonPrice:5,
+    tonBonus:0.05,
+    desc:"+5% шанс на TON-рибу"
+  }
+];
+
+/* ===== LOCATIONS ===== */
 const locations=[
   {name:"🌊 Озеро",level:1,fish:[
     {name:"Карась",weight:10},
@@ -158,19 +175,23 @@ const locations=[
   ]}
 ];
 
-/* ===== НАВІГАЦІЯ ===== */
+/* ===== NAV ===== */
 function openScreen(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   if(document.getElementById(id))document.getElementById(id).classList.add("active");
 }
 
-/* ===== ЛОВЛЯ ===== */
+/* ===== CATCH ===== */
 function catchFish(){
   const now=Date.now();
   const rod=rods[player.rod];
 
-  if(rod.legendary && now-player.lastTonCatch>86400000){
-    if(Math.random()<0.10){
+  let tonChance=0;
+  if(rod.legendary) tonChance+=0.10;
+  if(player.gear.landingNet) tonChance+=0.05;
+
+  if(tonChance>0 && now-player.lastTonCatch>86400000){
+    if(Math.random()<tonChance){
       player.lastTonCatch=now;
       player.fish["💎 TON-риба"]=(player.fish["💎 TON-риба"]||0)+1;
       document.getElementById("catch").innerText="💎 Спіймав TON-рибу!";
@@ -186,7 +207,7 @@ function catchFish(){
   saveGame();render();
 }
 
-/* ===== ПРОДАЖ ===== */
+/* ===== SELL ===== */
 function sellFish(){
   let coins=0,tons=0;
   for(let name in player.fish){
@@ -205,18 +226,26 @@ function sellFish(){
   saveGame();render();
 }
 
-/* ===== МАГАЗИН ===== */
+/* ===== BUY ===== */
 function buyRod(i){
   const r=rods[i];
-  if(r.tonPrice){alert("💎 TON-покупки підключимо далі");return;}
+  if(r.tonPrice){alert("💎 TON-покупки підключимо пізніше");return;}
   if(player.coins>=r.price){
     player.coins-=r.price;
     player.rod=i;
     saveGame();render();
   }
 }
+function buyGear(id){
+  const g=gearItems.find(x=>x.id===id);
+  if(player.tons>=g.tonPrice && !player.gear[id]){
+    player.tons-=g.tonPrice;
+    player.gear[id]=true;
+    saveGame();render();
+  }
+}
 
-/* ===== ЛОКАЦІЇ ===== */
+/* ===== LOCATION ===== */
 function changeLocation(i){
   if(player.level>=locations[i].level){
     player.location=i;
@@ -225,7 +254,7 @@ function changeLocation(i){
   }
 }
 
-/* ===== РЕНДЕР ===== */
+/* ===== RENDER ===== */
 function render(){
   document.getElementById("locName").innerText=locations[player.location].name;
 
@@ -241,11 +270,18 @@ function render(){
         : `<button class="locked">${l.name} (lvl ${l.level})</button>`
     ).join("");
 
-  document.getElementById("shopList").innerHTML=
+  document.getElementById("shopRods").innerHTML=
     rods.map((r,i)=>
       r.tonPrice
         ? `<button class="ton">💎 ${r.name} — ${r.tonPrice} TON</button>`
         : `<button class="gray" onclick="buyRod(${i})">${r.name} — ${r.price} 🪙</button>`
+    ).join("");
+
+  document.getElementById("shopGear").innerHTML=
+    gearItems.map(g=>
+      player.gear[g.id]
+        ? `<button class="locked">✅ ${g.name}</button>`
+        : `<button class="ton" onclick="buyGear('${g.id}')">💎 ${g.name} — ${g.tonPrice} TON<br>${g.desc}</button>`
     ).join("");
 
   document.getElementById("statsText").innerHTML=
@@ -253,6 +289,7 @@ function render(){
      💎 TON: ${player.tons}<br>
      ⭐ Рівень: ${player.level}<br>
      🎣 Вудка: ${rods[player.rod].name}<br>
+     🧰 Підсака: ${player.gear.landingNet?"Так":"Ні"}<br>
      📍 Локація: ${locations[player.location].name}`;
 }
 
