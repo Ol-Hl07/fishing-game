@@ -2,47 +2,91 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<title>🎣 Fishing Simulator</title>
+<title>🎣 Fishing Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{margin:0;font-family:system-ui,sans-serif;
-background:url("https://images.unsplash.com/photo-1502082553048-f009c37129b9") center/cover no-repeat}
-.overlay{background:rgba(0,0,0,.45);min-height:100vh;padding:12px}
-.header{text-align:center;color:#fff;font-size:26px;font-weight:700;margin-bottom:12px}
-.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;margin:0 auto}
-.menu-btn{background:linear-gradient(#8b5a2b,#5c3a1e);border-radius:14px;padding:12px 6px;
-text-align:center;color:#fff;font-weight:600}
-.menu-btn span{display:block;font-size:26px}
-.screen{display:none;max-width:420px;margin:12px auto 0;background:#fff;border-radius:16px;padding:14px}
+:root{
+  --panel-bg:rgba(0,0,0,.55);
+}
+
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background-size:cover;
+  background-position:center;
+  transition:background-image .6s ease;
+}
+
+.overlay{
+  min-height:100vh;
+  background:rgba(0,0,0,.35);
+  padding-bottom:80px;
+}
+
+.header{
+  text-align:center;
+  color:#fff;
+  font-size:24px;
+  font-weight:700;
+  padding:12px;
+}
+
+/* ЕКРАН */
+.screen{
+  display:none;
+  max-width:420px;
+  margin:0 auto;
+  background:rgba(255,255,255,.95);
+  border-radius:18px;
+  padding:14px;
+}
 .screen.active{display:block}
-button{width:100%;padding:14px;margin:6px 0;border:none;border-radius:14px;font-size:16px}
+
+/* КНОПКИ */
+button{
+  width:100%;
+  padding:16px;
+  margin:6px 0;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+}
 .primary{background:#ffd000;font-weight:700}
 .gray{background:#eee}
-.locked{background:#ddd;color:#888}
-.ton{background:#7c5cff;color:#fff;font-weight:700}
-.r-common{color:#444}
-.r-rare{color:#1e88e5;font-weight:600}
-.r-legend{color:#8e24aa;font-weight:700}
+
+/* НИЖНЯ ПАНЕЛЬ */
+.navbar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:var(--panel-bg);
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+  backdrop-filter:blur(6px);
+}
+.nav-btn{
+  color:#fff;
+  font-size:12px;
+  text-align:center;
+}
+.nav-btn span{
+  display:block;
+  font-size:22px;
+}
 </style>
 </head>
 
 <body>
 <div class="overlay">
 
-<div class="header">🎣 РИБАЛКА</div>
+<div class="header">🎣 Рибалка</div>
 
-<div class="menu">
-  <div class="menu-btn" onclick="openScreen('fishing')"><span>🎣</span>Рибалка</div>
-  <div class="menu-btn" onclick="openScreen('inventory')"><span>🎒</span>Інвентар</div>
-  <div class="menu-btn" onclick="openScreen('locations')"><span>🗺</span>Локації</div>
-  <div class="menu-btn" onclick="openScreen('shop')"><span>🛒</span>Магазин</div>
-  <div class="menu-btn" onclick="openScreen('stats')"><span>📖</span>Статистика</div>
-</div>
-
-<div id="fishing" class="screen">
-  <h3>🎣 Рибалка — <span id="locName"></span></h3>
-  <button class="primary" onclick="catchFish()">Закинути вудку</button>
+<div id="fishing" class="screen active">
+  <h3 id="locName"></h3>
+  <button class="primary" onclick="catchFish()">🎣 Закинути вудку</button>
   <button class="gray" onclick="sellFish()">💰 Продати рибу</button>
   <div id="catch"></div>
 </div>
@@ -59,14 +103,7 @@ button{width:100%;padding:14px;margin:6px 0;border:none;border-radius:14px;font-
 
 <div id="shop" class="screen">
   <h3>🛒 Магазин</h3>
-  <h4>🎣 Вудки</h4>
   <div id="shopRods"></div>
-  <h4>🪱 Наживка</h4>
-  <div id="shopBait"></div>
-  <h4>🌾 Прикорм</h4>
-  <div id="shopFeed"></div>
-  <h4>🧰 Снасті</h4>
-  <div id="shopGear"></div>
 </div>
 
 <div id="stats" class="screen">
@@ -76,196 +113,96 @@ button{width:100%;padding:14px;margin:6px 0;border:none;border-radius:14px;font-
 
 </div>
 
-<script>
-/* ===== RESET SAFE LOAD ===== */
-function loadGame(){
-  try{
-    const d=JSON.parse(localStorage.getItem("fishingGame"));
-    return d && d.coins!==undefined ? d : null;
-  }catch{ return null }
-}
-function saveGame(){
-  localStorage.setItem("fishingGame",JSON.stringify(player));
-}
+<!-- НИЖНЯ НАВІГАЦІЯ -->
+<div class="navbar">
+  <div class="nav-btn" onclick="openScreen('fishing')"><span>🎣</span>Ловля</div>
+  <div class="nav-btn" onclick="openScreen('inventory')"><span>🎒</span>Інв.</div>
+  <div class="nav-btn" onclick="openScreen('locations')"><span>🗺</span>Мапа</div>
+  <div class="nav-btn" onclick="openScreen('shop')"><span>🛒</span>Маг.</div>
+  <div class="nav-btn" onclick="openScreen('stats')"><span>📖</span>Стат.</div>
+</div>
 
-/* ===== PLAYER ===== */
-let player=loadGame()||{
-  fish:{},
-  tonFish:0,
-  coins:0,
-  tons:0,
-  level:1,
+<script>
+/* ДАНІ */
+const locations=[
+  {
+    name:"🌊 Озеро",
+    bg:"https://images.unsplash.com/photo-1502082553048-f009c37129b9",
+    fish:["Карась","Окунь"]
+  },
+  {
+    name:"🌅 Річка",
+    bg:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+    fish:["Короп","Щука"]
+  },
+  {
+    name:"🌌 Море",
+    bg:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+    fish:["Тунець","Марлін"]
+  },
+  {
+    name:"🌊 Океан",
+    bg:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
+    fish:["Акула"]
+  }
+];
+
+let player={
   location:0,
-  rod:0,
-  bait:0,
-  feed:0,
-  gear:{landingNet:false},
-  lastTonCatch:0
+  fish:{},
+  coins:0
 };
 
-/* ===== DATA ===== */
-const rods=[
-  {name:"Стара вудка",power:1,price:0},
-  {name:"Добра вудка",power:2,price:50},
-  {name:"Профі вудка",power:3,price:250},
-  {name:"Турбо вудка",power:4,price:500},
-  {name:"Легендарна вудка",power:5,tonPrice:15,legendary:true}
-];
-
-const baitItems=[
-  {name:"Черв'як",price:20,uses:5,power:1},
-  {name:"Опариш",price:50,uses:10,power:1}
-];
-
-const feedItems=[
-  {name:"Простий прикорм",price:40,casts:5},
-  {name:"Преміум прикорм",price:120,casts:10}
-];
-
-const gearItems=[
-  {id:"landingNet",name:"Підсака",tonPrice:5,tonBonus:0.05}
-];
-
-const rarityTable=[
-  {key:"common",name:"⚪ Звичайна",chance:0.7,mult:1,cls:"r-common"},
-  {key:"rare",name:"🔵 Рідкісна",chance:0.25,mult:1.5,cls:"r-rare"},
-  {key:"legend",name:"🟣 Легендарна",chance:0.05,mult:3,cls:"r-legend"}
-];
-
-const locations=[
-  {name:"🌊 Озеро",level:1,fish:[{name:"Карась",weight:10},{name:"Окунь",weight:9}]},
-  {name:"🌿 Ставок",level:3,fish:[{name:"Лин",weight:8},{name:"Карась великий",weight:7}]},
-  {name:"🌅 Річка",level:6,fish:[{name:"Короп",weight:6},{name:"Щука",weight:5}]},
-  {name:"🌌 Море",level:10,fish:[{name:"Тунець",weight:3},{name:"Марлін",weight:2}]},
-  {name:"🌊 Океан",level:15,fish:[{name:"Акула",weight:1}]}
-];
-
-/* ===== CORE ===== */
-function rollRarity(){
-  let r=Math.random(),a=0;
-  for(let x of rarityTable){a+=x.chance;if(r<=a)return x}
-  return rarityTable[0];
-}
 function openScreen(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
+function setBackground(){
+  document.body.style.backgroundImage=`url('${locations[player.location].bg}')`;
+  document.getElementById("locName").innerText=locations[player.location].name;
+}
+
 function catchFish(){
-  const rod=rods[player.rod];
-  const now=Date.now();
-
-  let tonChance=(rod.legendary?0.10:0)+(player.gear.landingNet?0.05:0);
-  if(tonChance>0 && now-player.lastTonCatch>86400000 && Math.random()<tonChance){
-    player.lastTonCatch=now;
-    player.tonFish++;
-    document.getElementById("catch").innerText="💎 Спіймав TON-рибу!";
-    saveGame();render();return;
-  }
-
-  let power=rod.power;
-  if(player.bait>0){power++;player.bait--}
-  if(player.feed>0){power++;player.feed--}
-
-  const rarity=rollRarity();
-  const loc=locations[player.location];
-  const fish=loc.fish[Math.min(Math.floor(Math.random()*power),loc.fish.length-1)];
-  const key=`${fish.name}|${rarity.key}`;
-  player.fish[key]=(player.fish[key]||0)+1;
-
-  document.getElementById("catch").innerHTML=
-    `🎣 ${fish.name} <span class="${rarity.cls}">(${rarity.name})</span>`;
-  saveGame();render();
+  const f=locations[player.location].fish;
+  const fish=f[Math.floor(Math.random()*f.length)];
+  player.fish[fish]=(player.fish[fish]||0)+1;
+  document.getElementById("catch").innerText=`🎣 Спіймав: ${fish}`;
+  render();
 }
 
 function sellFish(){
-  let coins=0;
-  for(let k in player.fish){
-    const [name,rar]=k.split("|");
-    const r=rarityTable.find(x=>x.key===rar);
-    for(let l of locations){
-      let f=l.fish.find(x=>x.name===name);
-      if(f) coins+=Math.floor((player.fish[k]/f.weight)*r.mult);
-    }
-  }
-  player.coins+=coins;
-  player.tons+=player.tonFish;
-  player.fish={}; player.tonFish=0;
-  document.getElementById("catch").innerText=`💰 +${coins} 🪙 | 💎 +TON`;
-  saveGame();render();
+  let total=0;
+  for(let k in player.fish) total+=player.fish[k];
+  player.coins+=Math.floor(total/5);
+  player.fish={};
+  document.getElementById("catch").innerText=`💰 Продано, монет: ${player.coins}`;
+  render();
 }
 
-function buyRod(i){
-  const r=rods[i];
-  if(r.tonPrice){alert("TON підключимо окремо");return}
-  if(player.coins>=r.price){player.coins-=r.price;player.rod=i}
-  saveGame();render();
-}
-function buyBait(i){
-  const b=baitItems[i];
-  if(player.coins>=b.price){player.coins-=b.price;player.bait+=b.uses}
-  saveGame();render();
-}
-function buyFeed(i){
-  const f=feedItems[i];
-  if(player.coins>=f.price){player.coins-=f.price;player.feed+=f.casts}
-  saveGame();render();
-}
-function buyGear(id){
-  const g=gearItems.find(x=>x.id===id);
-  if(player.tons>=g.tonPrice && !player.gear[id]){
-    player.tons-=g.tonPrice;player.gear[id]=true
-  }
-  saveGame();render();
-}
 function changeLocation(i){
-  if(player.level>=locations[i].level){player.location=i;openScreen("fishing")}
-  saveGame();render();
+  player.location=i;
+  setBackground();
+  openScreen("fishing");
 }
 
 function render(){
-  document.getElementById("locName").innerText=locations[player.location].name;
-
-  let inv=[];
-  for(let k in player.fish){
-    const [n,r]=k.split("|");
-    const rr=rarityTable.find(x=>x.key===r);
-    inv.push(`${n} <span class="${rr.cls}">(${rr.name})</span>: ${player.fish[k]}`);
-  }
-  if(player.tonFish>0) inv.push(`💎 TON-риба: ${player.tonFish}`);
-  document.getElementById("inv").innerHTML=inv.length?inv.join("<br>"):"Порожньо";
+  document.getElementById("inv").innerHTML=
+    Object.keys(player.fish).length
+      ? Object.entries(player.fish).map(([k,v])=>`${k}: ${v}`).join("<br>")
+      : "Порожньо";
 
   document.getElementById("locList").innerHTML=
-    locations.map((l,i)=>player.level>=l.level
-      ? `<button class="gray" onclick="changeLocation(${i})">${l.name}</button>`
-      : `<button class="locked">${l.name} (lvl ${l.level})</button>`
-    ).join("");
-
-  document.getElementById("shopRods").innerHTML=
-    rods.map((r,i)=>r.tonPrice
-      ? `<button class="ton">💎 ${r.name} — ${r.tonPrice} TON</button>`
-      : `<button class="gray" onclick="buyRod(${i})">${r.name} — ${r.price} 🪙</button>`
-    ).join("");
-
-  document.getElementById("shopBait").innerHTML=
-    baitItems.map((b,i)=>`<button class="gray" onclick="buyBait(${i})">${b.name} — ${b.price} 🪙 (+${b.uses})</button>`).join("");
-
-  document.getElementById("shopFeed").innerHTML=
-    feedItems.map((f,i)=>`<button class="gray" onclick="buyFeed(${i})">${f.name} — ${f.price} 🪙 (${f.casts} закидів)</button>`).join("");
-
-  document.getElementById("shopGear").innerHTML=
-    gearItems.map(g=>player.gear[g.id]
-      ? `<button class="locked">✅ ${g.name}</button>`
-      : `<button class="ton" onclick="buyGear('${g.id}')">💎 ${g.name} — ${g.tonPrice} TON (+5% TON)</button>`
+    locations.map((l,i)=>
+      `<button class="gray" onclick="changeLocation(${i})">${l.name}</button>`
     ).join("");
 
   document.getElementById("statsText").innerHTML=
     `🪙 Монети: ${player.coins}<br>
-     💎 TON: ${player.tons}<br>
-     ⭐ Рівень: ${player.level}<br>
-     🎣 Вудка: ${rods[player.rod].name}`;
+     📍 Локація: ${locations[player.location].name}`;
 }
 
+setBackground();
 render();
 </script>
 </body>
