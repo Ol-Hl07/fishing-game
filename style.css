@@ -1,31 +1,44 @@
 :root{
-  --panel-bg: rgba(0,0,0,.55);
+  --panel-bg: rgba(0,0,0,.6);
   --card-bg: rgba(255,255,255,.92);
   --accent: #ffd000;
 }
 
-*{
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
   margin:0;
-  font-family:system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:system-ui, sans-serif;
   background-size:cover;
   background-position:center;
-  background-attachment:fixed;
-  transition:background-image .6s ease;
+  transition:background-image .8s ease;
+  overflow-x:hidden;
 }
 
-/* затемнення */
+/* затемнення + атмосфера */
 .overlay{
   min-height:100vh;
-  background:linear-gradient(
-    to bottom,
-    rgba(0,0,0,.35),
-    rgba(0,0,0,.65)
-  );
+  background:
+    linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,.65)),
+    radial-gradient(circle at top, rgba(255,255,255,.08), transparent 60%);
   padding-bottom:90px;
+}
+
+/* хвилі */
+.overlay::after{
+  content:"";
+  position:fixed;
+  bottom:0; left:0; right:0;
+  height:160px;
+  background:rgba(255,255,255,.05);
+  animation:waves 8s ease-in-out infinite;
+  pointer-events:none;
+}
+
+@keyframes waves{
+  0%{transform:translateY(0)}
+  50%{transform:translateY(-12px)}
+  100%{transform:translateY(0)}
 }
 
 /* заголовок */
@@ -34,7 +47,7 @@ body{
   color:#fff;
   font-size:22px;
   font-weight:700;
-  padding:14px 10px;
+  padding:14px;
 }
 
 /* екрани */
@@ -64,33 +77,20 @@ button{
   font-weight:700;
 }
 
-.gray{
-  background:#eee;
-}
-
-.locked{
-  background:#ddd;
-  color:#777;
-}
-
-.ton{
-  background:#7c5cff;
-  color:#fff;
-  font-weight:700;
-}
+.gray{background:#eee}
+.locked{background:#ddd;color:#777}
+.ton{background:#7c5cff;color:#fff;font-weight:700}
 
 /* рідкість */
 .r-common{color:#444}
 .r-rare{color:#1e88e5;font-weight:600}
 .r-legend{color:#8e24aa;font-weight:700}
 
-/* НИЖНЯ ПАНЕЛЬ */
+/* ===== ІГРОВА НАВІГАЦІЯ ===== */
 .navbar{
   position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  height:70px;
+  bottom:0; left:0; right:0;
+  height:74px;
   background:var(--panel-bg);
   backdrop-filter:blur(8px);
   display:flex;
@@ -100,18 +100,20 @@ button{
 }
 
 .nav-btn{
-  color:#fff;
+  flex:1;
   text-align:center;
+  color:#fff;
   font-size:12px;
-  opacity:.85;
+  opacity:.8;
 }
 
 .nav-btn span{
   display:block;
-  font-size:22px;
-  line-height:1;
+  font-size:24px;
+  margin-bottom:2px;
 }
 
-.nav-btn:hover{
+.nav-btn:active{
+  transform:scale(.95);
   opacity:1;
 }
