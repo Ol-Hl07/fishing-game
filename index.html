@@ -5,7 +5,135 @@
 <title>🎣 Fishing Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="./style.css">
+<style>
+:root{
+  --panel-bg: rgba(0,0,0,.6);
+  --card-bg: rgba(255,255,255,.92);
+  --accent: #ffd000;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:system-ui, sans-serif;
+  background-size:cover;
+  background-position:center;
+  transition:background-image .8s ease;
+  overflow-x:hidden;
+}
+
+/* затемнення */
+.overlay{
+  min-height:100vh;
+  background:linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,.65));
+  padding-bottom:90px;
+}
+
+/* хвилі */
+.water{
+  position:fixed;
+  bottom:74px; left:0; right:0;
+  height:140px;
+  pointer-events:none;
+  overflow:hidden;
+}
+.wave{
+  position:absolute;
+  width:200%;
+  height:100%;
+  background:rgba(255,255,255,.08);
+  border-radius:50%;
+  animation:waveMove 6s linear infinite;
+}
+@keyframes waveMove{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+
+/* вудка */
+.rod{
+  position:fixed;
+  bottom:150px;
+  right:-120px;
+  font-size:80px;
+  transform:rotate(-20deg);
+  transition:all .8s ease;
+  pointer-events:none;
+}
+.rod.cast{
+  right:20px;
+  transform:rotate(-45deg);
+}
+
+/* поплавок */
+.float{
+  position:fixed;
+  bottom:170px;
+  left:50%;
+  font-size:28px;
+  opacity:0;
+  transform:translateX(-50%);
+  transition:all .8s ease;
+  pointer-events:none;
+}
+.float.show{
+  opacity:1;
+  bottom:240px;
+}
+
+/* UI */
+.header{
+  text-align:center;
+  color:#fff;
+  font-size:22px;
+  font-weight:700;
+  padding:14px;
+}
+.screen{
+  display:none;
+  max-width:420px;
+  margin:0 auto;
+  background:var(--card-bg);
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+.screen.active{display:block}
+
+button{
+  width:100%;
+  padding:16px;
+  margin:6px 0;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
+}
+.primary{background:var(--accent);font-weight:700}
+.gray{background:#eee}
+
+/* нижня панель */
+.navbar{
+  position:fixed;
+  bottom:0; left:0; right:0;
+  height:74px;
+  background:var(--panel-bg);
+  backdrop-filter:blur(8px);
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+}
+.nav-btn{
+  color:#fff;
+  font-size:12px;
+  text-align:center;
+  opacity:.85;
+}
+.nav-btn span{
+  display:block;
+  font-size:24px;
+}
+.nav-btn:active{transform:scale(.95);opacity:1}
+</style>
 </head>
 
 <body>
@@ -13,7 +141,6 @@
 
 <div class="header">🎣 Рибалка</div>
 
-<!-- РИБАЛКА -->
 <div id="fishing" class="screen active">
   <h3 id="locName"></h3>
   <button class="primary" onclick="catchFish()">🎣 Закинути вудку</button>
@@ -21,36 +148,16 @@
   <div id="catch"></div>
 </div>
 
-<!-- ІНВЕНТАР -->
 <div id="inventory" class="screen">
   <h3>🎒 Інвентар</h3>
   <div id="inv"></div>
 </div>
 
-<!-- ЛОКАЦІЇ -->
 <div id="locations" class="screen">
   <h3>🗺 Локації</h3>
   <div id="locList"></div>
 </div>
 
-<!-- МАГАЗИН -->
-<div id="shop" class="screen">
-  <h3>🛒 Магазин</h3>
-
-  <h4>🎣 Вудки</h4>
-  <div id="shopRods"></div>
-
-  <h4>🪱 Наживка</h4>
-  <div id="shopBait"></div>
-
-  <h4>🌾 Прикорм</h4>
-  <div id="shopFeed"></div>
-
-  <h4>🧰 Снасті</h4>
-  <div id="shopGear"></div>
-</div>
-
-<!-- СТАТИСТИКА -->
 <div id="stats" class="screen">
   <h3>📖 Статистика</h3>
   <div id="statsText"></div>
@@ -58,15 +165,96 @@
 
 </div>
 
-<!-- НИЖНЯ ПАНЕЛЬ -->
+<!-- ефекти -->
+<div class="water"><div class="wave"></div></div>
+<div class="rod">🎣</div>
+<div class="float">🎈</div>
+
+<!-- навігація -->
 <div class="navbar">
   <div class="nav-btn" onclick="openScreen('fishing')"><span>🎣</span>Ловля</div>
   <div class="nav-btn" onclick="openScreen('inventory')"><span>🎒</span>Інв.</div>
   <div class="nav-btn" onclick="openScreen('locations')"><span>🗺</span>Мапа</div>
-  <div class="nav-btn" onclick="openScreen('shop')"><span>🛒</span>Маг.</div>
   <div class="nav-btn" onclick="openScreen('stats')"><span>📖</span>Стат.</div>
 </div>
 
-<script src="./script.js"></script>
+<script>
+/* ===== DATA ===== */
+const locations=[
+  {name:"🌊 Озеро", bg:"https://images.unsplash.com/photo-1502082553048-f009c37129b9", fish:["Карась","Окунь"]},
+  {name:"🌅 Річка", bg:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e", fish:["Короп","Щука"]},
+  {name:"🌌 Море", bg:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e", fish:["Тунець","Марлін"]}
+];
+
+let player={
+  location:0,
+  fish:{},
+  coins:0
+};
+
+/* ===== UI ===== */
+const rodEl=document.querySelector(".rod");
+const floatEl=document.querySelector(".float");
+
+function openScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function setBackground(){
+  document.body.style.backgroundImage=`url('${locations[player.location].bg}')`;
+}
+
+/* ===== GAME ===== */
+function catchFish(){
+  rodEl.classList.add("cast");
+  floatEl.classList.add("show");
+
+  setTimeout(()=>{
+    const f=locations[player.location].fish;
+    const fish=f[Math.floor(Math.random()*f.length)];
+    player.fish[fish]=(player.fish[fish]||0)+1;
+    document.getElementById("catch").innerText=`🎣 Спіймав: ${fish}`;
+    rodEl.classList.remove("cast");
+    floatEl.classList.remove("show");
+    render();
+  },1500);
+}
+
+function sellFish(){
+  let total=0;
+  for(let k in player.fish) total+=player.fish[k];
+  player.coins+=Math.floor(total/5);
+  player.fish={};
+  document.getElementById("catch").innerText=`💰 Монети: ${player.coins}`;
+  render();
+}
+
+function changeLocation(i){
+  player.location=i;
+  setBackground();
+  openScreen("fishing");
+  render();
+}
+
+function render(){
+  document.getElementById("locName").innerText=locations[player.location].name;
+
+  document.getElementById("inv").innerHTML=
+    Object.keys(player.fish).length
+      ? Object.entries(player.fish).map(([k,v])=>`${k}: ${v}`).join("<br>")
+      : "Порожньо";
+
+  document.getElementById("locList").innerHTML=
+    locations.map((l,i)=>`<button class="gray" onclick="changeLocation(${i})">${l.name}</button>`).join("");
+
+  document.getElementById("statsText").innerHTML=
+    `🪙 Монети: ${player.coins}<br>📍 Локація: ${locations[player.location].name}`;
+}
+
+/* ===== START ===== */
+setBackground();
+render();
+</script>
 </body>
 </html>
