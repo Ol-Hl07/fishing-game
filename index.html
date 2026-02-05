@@ -6,61 +6,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: url("https://images.unsplash.com/photo-1502082553048-f009c37129b9") center/cover no-repeat;
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:url("https://images.unsplash.com/photo-1502082553048-f009c37129b9") center/cover no-repeat;
 }
-.overlay {
-  background: rgba(0,0,0,0.4);
-  min-height: 100vh;
-  padding: 12px;
+.overlay{background:rgba(0,0,0,.45);min-height:100vh;padding:12px}
+.header{color:#fff;text-align:center;font-size:26px;font-weight:700;margin-bottom:12px}
+.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;margin:0 auto}
+.menu-btn{
+  background:linear-gradient(#8b5a2b,#5c3a1e);
+  border-radius:14px;padding:12px 6px;text-align:center;color:#fff;font-weight:600
 }
-.header {
-  text-align: center;
-  color: #fff;
-  font-size: 26px;
-  font-weight: 700;
-  margin-bottom: 12px;
+.menu-btn span{display:block;font-size:26px}
+.screen{
+  display:none;max-width:420px;margin:12px auto 0;background:#fff;
+  border-radius:16px;padding:14px
 }
-.menu {
-  display: grid;
-  grid-template-columns: repeat(3,1fr);
-  gap: 10px;
-  max-width: 420px;
-  margin: 0 auto;
-}
-.menu-btn {
-  background: linear-gradient(#8b5a2b, #5c3a1e);
-  border-radius: 14px;
-  padding: 12px 6px;
-  text-align: center;
-  color: #fff;
-  font-weight: 600;
-}
-.menu-btn span {
-  display: block;
-  font-size: 26px;
-}
-.screen {
-  display: none;
-  max-width: 420px;
-  margin: 12px auto 0;
-  background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-}
-.screen.active { display: block; }
-button {
-  width: 100%;
-  padding: 14px;
-  margin: 6px 0;
-  border: none;
-  border-radius: 14px;
-  font-size: 16px;
-}
-.primary { background:#ffd000; font-weight:700; }
-.gray { background:#eee; }
+.screen.active{display:block}
+button{width:100%;padding:14px;margin:6px 0;border:none;border-radius:14px;font-size:16px}
+.primary{background:#ffd000;font-weight:700}
+.gray{background:#eee}
+.locked{background:#ddd;color:#888}
 </style>
 </head>
 
@@ -73,88 +40,127 @@ button {
 <div class="menu">
   <div class="menu-btn" onclick="openScreen('fishing')"><span>🎣</span>Рибалка</div>
   <div class="menu-btn" onclick="openScreen('inventory')"><span>🎒</span>Інвентар</div>
-  <div class="menu-btn" onclick="openScreen('shop')"><span>🛒</span>Магазин</div>
   <div class="menu-btn" onclick="openScreen('locations')"><span>🗺</span>Локації</div>
   <div class="menu-btn" onclick="openScreen('stats')"><span>📖</span>Статистика</div>
   <div class="menu-btn" onclick="openScreen('menu')"><span>⬅️</span>Назад</div>
 </div>
 
-<!-- ЕКРАНИ -->
+<!-- ЕКРАН РИБАЛКИ -->
 <div id="fishing" class="screen">
-  <h3>🎣 Рибалка</h3>
+  <h3>🎣 Рибалка — <span id="locName"></span></h3>
   <button class="primary" onclick="catchFish()">Закинути вудку</button>
   <button class="gray" onclick="sellFish()">Продати всю рибу</button>
   <div id="catch"></div>
 </div>
 
+<!-- ІНВЕНТАР -->
 <div id="inventory" class="screen">
-  <h3>🎒 Інвентар</h3>
+  <h3>🎒 Інвентар (риба)</h3>
   <div id="inv"></div>
 </div>
 
-<div id="shop" class="screen">
-  <h3>🛒 Магазин</h3>
-  <button class="gray" onclick="buyRod()">🎣 Купити кращу вудку (50🪙)</button>
-</div>
-
+<!-- ЛОКАЦІЇ -->
 <div id="locations" class="screen">
   <h3>🗺 Локації</h3>
-  <button class="gray">🌊 Озеро</button>
-  <button class="gray" disabled>🌅 Річка (lvl 3)</button>
+  <div id="locList"></div>
 </div>
 
+<!-- СТАТИСТИКА -->
 <div id="stats" class="screen">
   <h3>📖 Статистика</h3>
-  <div id="stats"></div>
+  <div id="statsText"></div>
 </div>
 
 </div>
 
 <script>
-let player = {
-  fish: {},
-  coins: 0,
-  rod: 1
+let player={
+  fish:{},
+  coins:0,
+  level:1,
+  location:0
 };
 
-function openScreen(id) {
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-  if (document.getElementById(id))
-    document.getElementById(id).classList.add("active");
+const locations=[
+  {
+    name:"🌊 Озеро",
+    level:1,
+    fish:[
+      {name:"Карась",price:1},
+      {name:"Окунь",price:2}
+    ]
+  },
+  {
+    name:"🌅 Річка",
+    level:3,
+    fish:[
+      {name:"Короп",price:3},
+      {name:"Щука",price:6}
+    ]
+  },
+  {
+    name:"🌌 Море",
+    level:6,
+    fish:[
+      {name:"Тунець",price:10},
+      {name:"Акула",price:20}
+    ]
+  }
+];
+
+function openScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  if(document.getElementById(id))document.getElementById(id).classList.add("active");
 }
 
-function catchFish() {
-  const fish = ["Карась","Окунь","Короп"][Math.floor(Math.random()*3)];
-  player.fish[fish] = (player.fish[fish]||0)+1;
-  document.getElementById("catch").innerText = "🎣 Спіймав: "+fish;
+function catchFish(){
+  const loc=locations[player.location];
+  const fish=loc.fish[Math.floor(Math.random()*loc.fish.length)];
+  player.fish[fish.name]=(player.fish[fish.name]||0)+1;
+  document.getElementById("catch").innerText=`🎣 Спіймав: ${fish.name} (+${fish.price}🪙)`;
   render();
 }
 
-function sellFish() {
-  let total = 0;
-  for (let f in player.fish) total += player.fish[f];
-  player.coins += total;
-  player.fish = {};
+function sellFish(){
+  let total=0;
+  for(let f in player.fish){
+    for(let l of locations){
+      let found=l.fish.find(x=>x.name===f);
+      if(found) total+=found.price*player.fish[f];
+    }
+  }
+  player.coins+=total;
+  player.fish={};
+  if(player.coins>=player.level*10) player.level++;
+  document.getElementById("catch").innerText= total?`💰 Продано на ${total} монет`:"❌ Немає риби";
   render();
 }
 
-function buyRod() {
-  if (player.coins >= 50) {
-    player.coins -= 50;
-    player.rod++;
-    alert("🎣 Вудку покращено!");
+function changeLocation(i){
+  if(player.level>=locations[i].level){
+    player.location=i;
+    openScreen("fishing");
     render();
   }
 }
 
-function render() {
-  document.getElementById("inv").innerHTML =
+function render(){
+  document.getElementById("locName").innerText=locations[player.location].name;
+
+  document.getElementById("inv").innerHTML=
     Object.keys(player.fish).length
       ? Object.entries(player.fish).map(([k,v])=>`${k}: ${v}`).join("<br>")
       : "Порожньо";
 
-  document.getElementById("stats").innerHTML =
-    `🪙 Монети: ${player.coins}<br>🎣 Рівень вудки: ${player.rod}`;
+  document.getElementById("locList").innerHTML=
+    locations.map((l,i)=>
+      player.level>=l.level
+        ? `<button class="gray" onclick="changeLocation(${i})">${l.name}</button>`
+        : `<button class="locked">${l.name} (lvl ${l.level})</button>`
+    ).join("");
+
+  document.getElementById("statsText").innerHTML=
+    `🪙 Монети: ${player.coins}<br>⭐ Рівень: ${player.level}<br>📍 Локація: ${locations[player.location].name}`;
 }
 
 render();
