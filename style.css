@@ -1,70 +1,117 @@
-* {
-  box-sizing: border-box;
+:root{
+  --panel-bg: rgba(0,0,0,.55);
+  --card-bg: rgba(255,255,255,.92);
+  --accent: #ffd000;
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-  background: linear-gradient(180deg, #1cb5e0, #000851);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+*{
+  box-sizing:border-box;
 }
 
-/* Карточка гри */
-.game {
-  background: #ffffff;
-  border-radius: 22px;
-  padding: 22px;
-  width: 92%;
-  max-width: 360px;
-  text-align: center;
-  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+body{
+  margin:0;
+  font-family:system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background-size:cover;
+  background-position:center;
+  background-attachment:fixed;
+  transition:background-image .6s ease;
 }
 
-/* Заголовок */
-.game h2 {
-  margin: 0 0 12px;
-  font-size: 24px;
+/* затемнення */
+.overlay{
+  min-height:100vh;
+  background:linear-gradient(
+    to bottom,
+    rgba(0,0,0,.35),
+    rgba(0,0,0,.65)
+  );
+  padding-bottom:90px;
 }
 
-/* Статистика */
-.stats {
-  background: #f4f6f8;
-  border-radius: 14px;
-  padding: 12px;
-  font-size: 16px;
-  margin-bottom: 18px;
+/* заголовок */
+.header{
+  text-align:center;
+  color:#fff;
+  font-size:22px;
+  font-weight:700;
+  padding:14px 10px;
 }
 
-/* Кнопки */
-.btn {
-  width: 100%;
-  padding: 14px;
-  margin-top: 12px;
-  font-size: 16px;
-  border: none;
-  border-radius: 14px;
-  background: #e9ecef;
-  cursor: pointer;
-  transition: transform 0.05s ease, background 0.2s ease;
+/* екрани */
+.screen{
+  display:none;
+  max-width:420px;
+  margin:0 auto;
+  background:var(--card-bg);
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+.screen.active{display:block}
+
+/* кнопки */
+button{
+  width:100%;
+  padding:16px;
+  margin:6px 0;
+  border:none;
+  border-radius:14px;
+  font-size:16px;
 }
 
-.btn:active {
-  transform: scale(0.97);
+.primary{
+  background:var(--accent);
+  font-weight:700;
 }
 
-/* Головна кнопка */
-.btn.main {
-  background: linear-gradient(135deg, #ffd000, #ff9f00);
-  font-size: 18px;
-  font-weight: 700;
+.gray{
+  background:#eee;
 }
 
-/* Кнопка магазину */
-.btn.shop {
-  background: linear-gradient(135deg, #6ae3ff, #4facfe);
-  color: #fff;
-  font-weight: 600;
+.locked{
+  background:#ddd;
+  color:#777;
+}
+
+.ton{
+  background:#7c5cff;
+  color:#fff;
+  font-weight:700;
+}
+
+/* рідкість */
+.r-common{color:#444}
+.r-rare{color:#1e88e5;font-weight:600}
+.r-legend{color:#8e24aa;font-weight:700}
+
+/* НИЖНЯ ПАНЕЛЬ */
+.navbar{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  height:70px;
+  background:var(--panel-bg);
+  backdrop-filter:blur(8px);
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  z-index:10;
+}
+
+.nav-btn{
+  color:#fff;
+  text-align:center;
+  font-size:12px;
+  opacity:.85;
+}
+
+.nav-btn span{
+  display:block;
+  font-size:22px;
+  line-height:1;
+}
+
+.nav-btn:hover{
+  opacity:1;
 }
