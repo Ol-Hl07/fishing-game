@@ -1,27 +1,170 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>Fishing Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>🎣 Рибалка</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(#4facfe, #00f2fe);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.card {
+  background: #fff;
+  width: 95%;
+  max-width: 420px;
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 { margin-top: 0; }
+
+.stats {
+  margin: 10px 0;
+  font-size: 15px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.primary { background: #ffd000; }
+.gray { background: #eee; }
+
+.box {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  font-size: 14px;
+}
+</style>
 </head>
+
 <body>
 
-  <div class="game">
-    <h2>🎣 Рибалка</h2>
+<div class="card">
+  <h1>🎣 Рибалка</h1>
 
-    <div id="result" class="stats">
-      🐟 Риба: 0 | ⭐ Рівень: 1 | 🎣 Вудка: 1
-    </div>
+  <div class="stats" id="stats"></div>
 
-    <button class="btn main" onclick="catchFish()">🎣 Ловити рибу</button>
-<div id="inventory" class="box"></div>
+  <button class="primary" onclick="fishAction()">🎣 Ловити рибу</button>
 
-<div id="shop" class="box"></div>
-    <button class="btn shop" onclick="buyRod()">🛒 Купити вудку (10 🐟)</button>
-  </div>
+  <div class="box" id="location"></div>
+  <div class="box" id="inventory"></div>
+  <div class="box" id="shop"></div>
+</div>
 
-  <script src="script.js"></script>
+<script>
+let player = {
+  fish: 0,
+  level: 1,
+  rod: 1,
+  bait: null,
+  location: 0
+};
+
+const locations = [
+  { name: "🌊 Озеро", fish: ["Карась", "Окунь"] },
+  { name: "🌅 Річка", fish: ["Щука", "Сом"], level: 3 },
+  { name: "🌌 Море", fish: ["Тунець", "Акула"], level: 6 }
+];
+
+const rods = [
+  { name: "Проста вудка", power: 1, price: 0 },
+  { name: "Посилена вудка", power: 2, price: 40 },
+  { name: "Профі вудка", power: 3, price: 100 }
+];
+
+const baitList = [
+  { name: "Хробак", bonus: 1, price: 10 },
+  { name: "Живець", bonus: 2, price: 25 }
+];
+
+function fishAction() {
+  let rodPower = rods[player.rod].power;
+  let bonus = player.bait ? baitList[player.bait].bonus : 0;
+
+  let caught = Math.floor(Math.random() * (rodPower + bonus + 1)) + 1;
+  player.fish += caught;
+
+  if (player.fish >= player.level * 10) {
+    player.level++;
+  }
+
+  render();
+}
+
+function buyRod(id) {
+  if (player.fish >= rods[id].price) {
+    player.fish -= rods[id].price;
+    player.rod = id;
+    render();
+  }
+}
+
+function buyBait(id) {
+  if (player.fish >= baitList[id].price) {
+    player.fish -= baitList[id].price;
+    player.bait = id;
+    render();
+  }
+}
+
+function changeLocation(id) {
+  if (!locations[id].level || player.level >= locations[id].level) {
+    player.location = id;
+    render();
+  }
+}
+
+function render() {
+  document.getElementById("stats").innerHTML =
+    `🐟 Риба: ${player.fish} | ⭐ Рівень: ${player.level}`;
+
+  document.getElementById("location").innerHTML =
+    `<b>Локація:</b><br>` +
+    locations.map((l, i) =>
+      `<button class="gray" onclick="changeLocation(${i})">
+       ${l.name} ${l.level ? "(lvl " + l.level + ")" : ""}
+      </button>`
+    ).join("");
+
+  document.getElementById("inventory").innerHTML =
+    `<b>🎒 Інвентар</b><br>
+     🎣 Вудка: ${rods[player.rod].name}<br>
+     🪱 Наживка: ${player.bait !== null ? baitList[player.bait].name : "нема"}`;
+
+  document.getElementById("shop").innerHTML =
+    `<b>🛒 Магазин</b><br>` +
+    rods.map((r, i) =>
+      `<button class="gray" onclick="buyRod(${i})">
+       ${r.name} (${r.price} 🐟)
+      </button>`
+    ).join("") +
+    baitList.map((b, i) =>
+      `<button class="gray" onclick="buyBait(${i})">
+       ${b.name} (${b.price} 🐟)
+      </button>`
+    ).join("");
+}
+
+render();
+</script>
+
 </body>
 </html>
