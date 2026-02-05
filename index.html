@@ -179,7 +179,7 @@ button{
 </div>
 
 <script>
-/* ===== DATA ===== */
+/* ===== ДАНІ ===== */
 const locations=[
   {name:"🌊 Озеро", bg:"https://images.unsplash.com/photo-1502082553048-f009c37129b9", fish:["Карась","Окунь"]},
   {name:"🌅 Річка", bg:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e", fish:["Короп","Щука"]},
@@ -205,7 +205,7 @@ function setBackground(){
   document.body.style.backgroundImage=`url('${locations[player.location].bg}')`;
 }
 
-/* ===== GAME ===== */
+/* ===== ГРА ===== */
 function catchFish(){
   rodEl.classList.add("cast");
   floatEl.classList.add("show");
@@ -252,7 +252,7 @@ function render(){
     `🪙 Монети: ${player.coins}<br>📍 Локація: ${locations[player.location].name}`;
 }
 
-/* ===== START ===== */
+/* ===== СТАРТ ===== */
 setBackground();
 render();
 </script>
