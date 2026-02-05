@@ -5,78 +5,7 @@
 <title>🎣 Fishing Game</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-:root{
-  --panel-bg:rgba(0,0,0,.55);
-}
-
-body{
-  margin:0;
-  font-family:system-ui,sans-serif;
-  background-size:cover;
-  background-position:center;
-  transition:background-image .6s ease;
-}
-
-.overlay{
-  min-height:100vh;
-  background:rgba(0,0,0,.35);
-  padding-bottom:80px;
-}
-
-.header{
-  text-align:center;
-  color:#fff;
-  font-size:24px;
-  font-weight:700;
-  padding:12px;
-}
-
-/* ЕКРАН */
-.screen{
-  display:none;
-  max-width:420px;
-  margin:0 auto;
-  background:rgba(255,255,255,.95);
-  border-radius:18px;
-  padding:14px;
-}
-.screen.active{display:block}
-
-/* КНОПКИ */
-button{
-  width:100%;
-  padding:16px;
-  margin:6px 0;
-  border:none;
-  border-radius:14px;
-  font-size:16px;
-}
-.primary{background:#ffd000;font-weight:700}
-.gray{background:#eee}
-
-/* НИЖНЯ ПАНЕЛЬ */
-.navbar{
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background:var(--panel-bg);
-  display:flex;
-  justify-content:space-around;
-  padding:10px 0;
-  backdrop-filter:blur(6px);
-}
-.nav-btn{
-  color:#fff;
-  font-size:12px;
-  text-align:center;
-}
-.nav-btn span{
-  display:block;
-  font-size:22px;
-}
-</style>
+<link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
@@ -84,6 +13,7 @@ button{
 
 <div class="header">🎣 Рибалка</div>
 
+<!-- РИБАЛКА -->
 <div id="fishing" class="screen active">
   <h3 id="locName"></h3>
   <button class="primary" onclick="catchFish()">🎣 Закинути вудку</button>
@@ -91,21 +21,36 @@ button{
   <div id="catch"></div>
 </div>
 
+<!-- ІНВЕНТАР -->
 <div id="inventory" class="screen">
   <h3>🎒 Інвентар</h3>
   <div id="inv"></div>
 </div>
 
+<!-- ЛОКАЦІЇ -->
 <div id="locations" class="screen">
   <h3>🗺 Локації</h3>
   <div id="locList"></div>
 </div>
 
+<!-- МАГАЗИН -->
 <div id="shop" class="screen">
   <h3>🛒 Магазин</h3>
+
+  <h4>🎣 Вудки</h4>
   <div id="shopRods"></div>
+
+  <h4>🪱 Наживка</h4>
+  <div id="shopBait"></div>
+
+  <h4>🌾 Прикорм</h4>
+  <div id="shopFeed"></div>
+
+  <h4>🧰 Снасті</h4>
+  <div id="shopGear"></div>
 </div>
 
+<!-- СТАТИСТИКА -->
 <div id="stats" class="screen">
   <h3>📖 Статистика</h3>
   <div id="statsText"></div>
@@ -113,7 +58,7 @@ button{
 
 </div>
 
-<!-- НИЖНЯ НАВІГАЦІЯ -->
+<!-- НИЖНЯ ПАНЕЛЬ -->
 <div class="navbar">
   <div class="nav-btn" onclick="openScreen('fishing')"><span>🎣</span>Ловля</div>
   <div class="nav-btn" onclick="openScreen('inventory')"><span>🎒</span>Інв.</div>
@@ -122,88 +67,6 @@ button{
   <div class="nav-btn" onclick="openScreen('stats')"><span>📖</span>Стат.</div>
 </div>
 
-<script>
-/* ДАНІ */
-const locations=[
-  {
-    name:"🌊 Озеро",
-    bg:"https://images.unsplash.com/photo-1502082553048-f009c37129b9",
-    fish:["Карась","Окунь"]
-  },
-  {
-    name:"🌅 Річка",
-    bg:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-    fish:["Короп","Щука"]
-  },
-  {
-    name:"🌌 Море",
-    bg:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-    fish:["Тунець","Марлін"]
-  },
-  {
-    name:"🌊 Океан",
-    bg:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
-    fish:["Акула"]
-  }
-];
-
-let player={
-  location:0,
-  fish:{},
-  coins:0
-};
-
-function openScreen(id){
-  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-}
-
-function setBackground(){
-  document.body.style.backgroundImage=`url('${locations[player.location].bg}')`;
-  document.getElementById("locName").innerText=locations[player.location].name;
-}
-
-function catchFish(){
-  const f=locations[player.location].fish;
-  const fish=f[Math.floor(Math.random()*f.length)];
-  player.fish[fish]=(player.fish[fish]||0)+1;
-  document.getElementById("catch").innerText=`🎣 Спіймав: ${fish}`;
-  render();
-}
-
-function sellFish(){
-  let total=0;
-  for(let k in player.fish) total+=player.fish[k];
-  player.coins+=Math.floor(total/5);
-  player.fish={};
-  document.getElementById("catch").innerText=`💰 Продано, монет: ${player.coins}`;
-  render();
-}
-
-function changeLocation(i){
-  player.location=i;
-  setBackground();
-  openScreen("fishing");
-}
-
-function render(){
-  document.getElementById("inv").innerHTML=
-    Object.keys(player.fish).length
-      ? Object.entries(player.fish).map(([k,v])=>`${k}: ${v}`).join("<br>")
-      : "Порожньо";
-
-  document.getElementById("locList").innerHTML=
-    locations.map((l,i)=>
-      `<button class="gray" onclick="changeLocation(${i})">${l.name}</button>`
-    ).join("");
-
-  document.getElementById("statsText").innerHTML=
-    `🪙 Монети: ${player.coins}<br>
-     📍 Локація: ${locations[player.location].name}`;
-}
-
-setBackground();
-render();
-</script>
+<script src="./script.js"></script>
 </body>
 </html>
