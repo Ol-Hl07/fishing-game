@@ -17,7 +17,7 @@ body{
 .overlay{
   background:rgba(0,0,0,.55);
   min-height:100vh;
-  padding-bottom:80px;
+  padding-bottom:90px;
 }
 .header{
   text-align:center;
@@ -46,9 +46,7 @@ button{
 .lock{background:#777}
 .navbar{
   position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
+  bottom:0;left:0;right:0;
   background:#111;
   display:flex;
 }
@@ -109,48 +107,72 @@ button{
 </div>
 
 <script>
+/* ===== ДАНІ ===== */
 const locations=[
  {name:"🌊 Озеро",bg:"https://images.unsplash.com/photo-1502082553048-f009c37129b9",
   fish:[{n:"Карась",v:10},{n:"Окунь",v:8}]},
  {name:"🏞 Річка",bg:"https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
   fish:[{n:"Короп",v:8},{n:"Щука",v:5}]},
- {name:"🌲 Ліс",bg:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-  fish:[{n:"Лин",v:8},{n:"Лящ",v:5}]},
  {name:"🌅 Море",bg:"https://images.unsplash.com/photo-1507525428034-b723cf961d3e",
   fish:[{n:"Тунець",v:5},{n:"Марлін",v:3}]},
  {name:"🌌 Глибина",bg:"https://images.unsplash.com/photo-1500534314209-a26db0f5c3b1",
   fish:[{n:"💎 TON-риба",ton:1,legend:true}]}
 ];
 
-let game=JSON.parse(localStorage.getItem("fishGame"))||{
- loc:0, fish:{}, coins:0, tons:0, rod:0
-};
+const rods=[
+ {name:"Стара вудка",power:1,price:0},
+ {name:"Добра вудка",power:2,price:50},
+ {name:"Профі вудка",power:3,price:250},
+ {name:"Турбо вудка",power:4,price:500},
+ {name:"Легендарна вудка",power:5,ton:15,tonChance:0.10}
+];
 
+const gear=[
+ {id:"hook",name:"Покращений гачок",price:100,bonus:0.05},
+ {id:"bait",name:"Прикорм",price:150,bonus:0.07},
+ {id:"net",name:"Підсака",ton:5,tonBonus:0.05}
+];
+
+/* ===== ЗБЕРЕЖЕННЯ ===== */
+let game=JSON.parse(localStorage.getItem("fishGame"))||{
+ loc:0,fish:{},coins:0,tons:0,
+ rod:0,gear:{hook:false,bait:false,net:false}
+};
 function save(){localStorage.setItem("fishGame",JSON.stringify(game))}
-function bg(){document.body.style.backgroundImage=`url('${locations[game.loc].bg}')`}
+
+/* ===== ФОН ===== */
+function bg(){
+ document.body.style.backgroundImage=`url('${locations[game.loc].bg}')`;
+}
 bg();
 
+/* ===== НАВІГАЦІЯ ===== */
 function openScreen(id){
  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
  document.getElementById(id).classList.add("active");
  render();
 }
 
+/* ===== ГРА ===== */
 function cast(){
  document.getElementById("rod").classList.add("cast");
  document.getElementById("float").classList.add("show");
+
  setTimeout(()=>{
-  const list=locations[game.loc].fish;
-  const f=list[Math.floor(Math.random()*list.length)];
-  if(f.legend && Math.random()<0.1){
+  let tonChance=0;
+  if(rods[game.rod].tonChance) tonChance+=rods[game.rod].tonChance;
+  if(game.gear.net) tonChance+=0.05;
+
+  if(Math.random()<tonChance){
     game.tons+=1;
     log("💎 Спіймав TON-рибу!");
   }else{
+    const list=locations[game.loc].fish;
+    const f=list[Math.floor(Math.random()*list.length)];
     game.fish[f.n]=(game.fish[f.n]||0)+1;
     log("🎣 Спіймав "+f.n);
   }
-  save();
-  render();
+  save();render();
   document.getElementById("rod").classList.remove("cast");
   document.getElementById("float").classList.remove("show");
  },1200);
@@ -164,27 +186,52 @@ function sell(){
  }
  game.coins+=earned;
  game.fish={};
- log("💰 Заробив "+earned+" монет");
+ log("💰 +" + earned + " монет");
  save();render();
 }
 
+/* ===== ПОКУПКИ ===== */
+function buyRod(i){
+ const r=rods[i];
+ if(r.price && game.coins>=r.price){game.coins-=r.price;game.rod=i}
+ if(r.ton && game.tons>=r.ton){game.tons-=r.ton;game.rod=i}
+ save();render();
+}
+function buyGear(id){
+ const g=gear.find(x=>x.id===id);
+ if(g.price && game.coins>=g.price){game.coins-=g.price;game.gear[id]=true}
+ if(g.ton && game.tons>=g.ton){game.tons-=g.ton;game.gear[id]=true}
+ save();render();
+}
+
+/* ===== РЕНДЕР ===== */
 function render(){
  document.getElementById("locationName").innerHTML=
-  `<b>${locations[game.loc].name}</b><br>🪙 ${game.coins} | 💎 ${game.tons}`;
+ `<b>${locations[game.loc].name}</b><br>🪙 ${game.coins} | 💎 ${game.tons}`;
 
  document.getElementById("inventory").innerHTML=
-  "<h3>🎒 Інвентар</h3>"+
-  (Object.keys(game.fish).length?
-   Object.entries(game.fish).map(e=>e[0]+": "+e[1]).join("<br>")
-   :"Порожньо");
+ "<h3>🎒 Інвентар</h3>"+
+ (Object.keys(game.fish).length
+  ? Object.entries(game.fish).map(e=>`${e[0]}: ${e[1]}`).join("<br>")
+  :"Порожньо");
 
  document.getElementById("locations").innerHTML=
-  "<h3>🗺 Локації</h3>"+
-  locations.map((l,i)=>`<button onclick="game.loc=${i};bg();openScreen('game')">${l.name}</button>`).join("");
+ "<h3>🗺 Локації</h3>"+
+ locations.map((l,i)=>`<button onclick="game.loc=${i};bg();openScreen('game')">${l.name}</button>`).join("");
 
  document.getElementById("shop").innerHTML=
-  "<h3>🛒 Магазин</h3>"+
-  "<div>💎 TON використовується для рідкісної риби</div>";
+ "<h3>🛒 Магазин</h3><b>Вудки</b><br>"+
+ rods.map((r,i)=>{
+  if(i===game.rod) return `<button class="lock">✅ ${r.name}</button>`;
+  if(r.price) return `<button onclick="buyRod(${i})">${r.name} — ${r.price} 🪙</button>`;
+  return `<button class="ton" onclick="buyRod(${i})">${r.name} — ${r.ton} 💎</button>`;
+ }).join("")+
+ "<hr><b>Снасті</b><br>"+
+ gear.map(g=>{
+  if(game.gear[g.id]) return `<button class="lock">✅ ${g.name}</button>`;
+  if(g.price) return `<button onclick="buyGear('${g.id}')">${g.name} — ${g.price} 🪙</button>`;
+  return `<button class="ton" onclick="buyGear('${g.id}')">${g.name} — ${g.ton} 💎</button>`;
+ }).join("");
 }
 
 function log(t){document.getElementById("log").innerText=t}
