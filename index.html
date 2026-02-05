@@ -15,36 +15,47 @@ body {
   align-items: center;
   min-height: 100vh;
 }
+
 .card {
   background: #fff;
   width: 95%;
   max-width: 420px;
-  border-radius: 20px;
-  padding: 18px;
+  border-radius: 22px;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.stats {
+  background: #f1f3f6;
+  padding: 12px;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  font-size: 15px;
   text-align: center;
 }
-.stats {
-  background:#f2f4f7;
-  padding:10px;
-  border-radius:12px;
-  margin-bottom:10px;
-}
+
 button {
-  width:100%;
-  padding:14px;
-  margin:6px 0;
-  border:none;
-  border-radius:14px;
-  font-size:16px;
+  width: 100%;
+  padding: 14px;
+  margin: 6px 0;
+  border: none;
+  border-radius: 14px;
+  font-size: 16px;
 }
-.primary { background:#ffd000; font-weight:700; }
-.gray { background:#eaeaea; }
+
+.primary { background: #ffd000; font-weight: 700; }
+.gray { background: #eaeaea; }
+
 .box {
-  background:#f7f7f7;
-  border-radius:12px;
-  padding:10px;
-  margin-top:8px;
-  font-size:14px;
+  background: #f7f7f7;
+  border-radius: 14px;
+  padding: 10px;
+  margin-top: 8px;
+  font-size: 14px;
 }
 </style>
 </head>
@@ -54,21 +65,19 @@ button {
 <div class="card">
   <h2>🎣 Рибалка</h2>
 
-  <div class="stats" id="stats"></div>
+  <div class="stats" id="stats">Завантаження...</div>
 
   <button class="primary" onclick="catchFish()">🎣 Закинути вудку</button>
   <button class="gray" onclick="sellFish()">💰 Продати всю рибу</button>
 
-  <div class="box" id="catch"></div>
+  <div class="box" id="catch">🎣 Ще нічого не зловлено</div>
   <div class="box" id="inventory"></div>
-  <div class="box" id="shop"></div>
 </div>
 
 <script>
 let player = {
   fishBag: {},
   coins: 0,
-  level: 1,
   rod: 0
 };
 
@@ -80,6 +89,55 @@ const fishTypes = [
 ];
 
 const rods = [
-  { name: "Стара вудка", chance: 1, price: 0 },
-  { name: "Міцна вудка", chance: 2, price: 30 },
-  { name: "Профі вудка", chance: 3, price
+  { name: "Стара вудка", chance: 1 },
+  { name: "Міцна вудка", chance: 2 },
+  { name: "Профі вудка", chance: 3 }
+];
+
+function catchFish() {
+  const max = rods[player.rod].chance;
+  const roll = Math.floor(Math.random() * fishTypes.length);
+  const fish = fishTypes[Math.min(roll, max)];
+
+  player.fishBag[fish.name] = (player.fishBag[fish.name] || 0) + 1;
+
+  document.getElementById("catch").innerText =
+    `🎣 Спіймав: ${fish.name} (+${fish.price}🪙)`;
+
+  render();
+}
+
+function sellFish() {
+  let total = 0;
+
+  for (let name in player.fishBag) {
+    const fish = fishTypes.find(f => f.name === name);
+    total += fish.price * player.fishBag[name];
+  }
+
+  player.coins += total;
+  player.fishBag = {};
+
+  document.getElementById("catch").innerText =
+    total > 0 ? `💰 Продано на ${total} монет` : "❌ Немає риби для продажу";
+
+  render();
+}
+
+function render() {
+  document.getElementById("stats").innerHTML =
+    `🪙 Монети: <b>${player.coins}</b> | 🎣 Вудка: ${rods[player.rod].name}`;
+
+  const inv = Object.entries(player.fishBag);
+  document.getElementById("inventory").innerHTML =
+    `<b>🎒 Риба в рюкзаку:</b><br>` +
+    (inv.length
+      ? inv.map(([k,v]) => `${k}: ${v}`).join("<br>")
+      : "Порожньо");
+}
+
+render();
+</script>
+
+</body>
+</html>
