@@ -6,49 +6,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  margin:0;
-  font-family:system-ui,sans-serif;
-  background:url("https://images.unsplash.com/photo-1502082553048-f009c37129b9") center/cover no-repeat;
-}
+body{margin:0;font-family:system-ui,sans-serif;
+background:url("https://images.unsplash.com/photo-1502082553048-f009c37129b9") center/cover no-repeat}
 .overlay{background:rgba(0,0,0,.45);min-height:100vh;padding:12px}
 .header{text-align:center;color:#fff;font-size:26px;font-weight:700;margin-bottom:12px}
-
-.menu{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-  max-width:420px;
-  margin:0 auto;
-}
-.menu-btn{
-  background:linear-gradient(#8b5a2b,#5c3a1e);
-  border-radius:14px;
-  padding:12px 6px;
-  text-align:center;
-  color:#fff;
-  font-weight:600;
-}
+.menu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:420px;margin:0 auto}
+.menu-btn{background:linear-gradient(#8b5a2b,#5c3a1e);border-radius:14px;padding:12px 6px;
+text-align:center;color:#fff;font-weight:600}
 .menu-btn span{display:block;font-size:26px}
-
-.screen{
-  display:none;
-  max-width:420px;
-  margin:12px auto 0;
-  background:#fff;
-  border-radius:16px;
-  padding:14px;
-}
+.screen{display:none;max-width:420px;margin:12px auto 0;background:#fff;border-radius:16px;padding:14px}
 .screen.active{display:block}
-
-button{
-  width:100%;
-  padding:14px;
-  margin:6px 0;
-  border:none;
-  border-radius:14px;
-  font-size:16px;
-}
+button{width:100%;padding:14px;margin:6px 0;border:none;border-radius:14px;font-size:16px}
 .primary{background:#ffd000;font-weight:700}
 .gray{background:#eee}
 .locked{background:#ddd;color:#888}
@@ -64,7 +32,6 @@ button{
 
 <div class="header">🎣 РИБАЛКА</div>
 
-<!-- МЕНЮ -->
 <div class="menu">
   <div class="menu-btn" onclick="openScreen('fishing')"><span>🎣</span>Рибалка</div>
   <div class="menu-btn" onclick="openScreen('inventory')"><span>🎒</span>Інвентар</div>
@@ -73,7 +40,6 @@ button{
   <div class="menu-btn" onclick="openScreen('stats')"><span>📖</span>Статистика</div>
 </div>
 
-<!-- РИБАЛКА -->
 <div id="fishing" class="screen">
   <h3>🎣 Рибалка — <span id="locName"></span></h3>
   <button class="primary" onclick="catchFish()">Закинути вудку</button>
@@ -81,28 +47,28 @@ button{
   <div id="catch"></div>
 </div>
 
-<!-- ІНВЕНТАР -->
 <div id="inventory" class="screen">
   <h3>🎒 Інвентар</h3>
   <div id="inv"></div>
 </div>
 
-<!-- ЛОКАЦІЇ -->
 <div id="locations" class="screen">
   <h3>🗺 Локації</h3>
   <div id="locList"></div>
 </div>
 
-<!-- МАГАЗИН -->
 <div id="shop" class="screen">
   <h3>🛒 Магазин</h3>
+  <h4>🎣 Вудки</h4>
   <div id="shopRods"></div>
+  <h4>🪱 Наживка</h4>
   <div id="shopBait"></div>
+  <h4>🌾 Прикорм</h4>
   <div id="shopFeed"></div>
+  <h4>🧰 Снасті</h4>
   <div id="shopGear"></div>
 </div>
 
-<!-- СТАТИСТИКА -->
 <div id="stats" class="screen">
   <h3>📖 Статистика</h3>
   <div id="statsText"></div>
@@ -111,18 +77,33 @@ button{
 </div>
 
 <script>
-/* === SAVE === */
-function loadGame(){return JSON.parse(localStorage.getItem("fishingGame")||"null")}
-function saveGame(){localStorage.setItem("fishingGame",JSON.stringify(player))}
+/* ===== RESET SAFE LOAD ===== */
+function loadGame(){
+  try{
+    const d=JSON.parse(localStorage.getItem("fishingGame"));
+    return d && d.coins!==undefined ? d : null;
+  }catch{ return null }
+}
+function saveGame(){
+  localStorage.setItem("fishingGame",JSON.stringify(player));
+}
 
-/* === PLAYER === */
+/* ===== PLAYER ===== */
 let player=loadGame()||{
   fish:{},
-  coins:0,tons:0,level:1,location:0,rod:0,
-  bait:0,feed:0,gear:{landingNet:false},lastTonCatch:0
+  tonFish:0,
+  coins:0,
+  tons:0,
+  level:1,
+  location:0,
+  rod:0,
+  bait:0,
+  feed:0,
+  gear:{landingNet:false},
+  lastTonCatch:0
 };
 
-/* === RODS === */
+/* ===== DATA ===== */
 const rods=[
   {name:"Стара вудка",power:1,price:0},
   {name:"Добра вудка",power:2,price:50},
@@ -131,24 +112,26 @@ const rods=[
   {name:"Легендарна вудка",power:5,tonPrice:15,legendary:true}
 ];
 
-/* === RARITY === */
+const baitItems=[
+  {name:"Черв'як",price:20,uses:5,power:1},
+  {name:"Опариш",price:50,uses:10,power:1}
+];
+
+const feedItems=[
+  {name:"Простий прикорм",price:40,casts:5},
+  {name:"Преміум прикорм",price:120,casts:10}
+];
+
+const gearItems=[
+  {id:"landingNet",name:"Підсака",tonPrice:5,tonBonus:0.05}
+];
+
 const rarityTable=[
-  {key:"common",name:"⚪ Звичайна",chance:0.70,mult:1,cls:"r-common"},
+  {key:"common",name:"⚪ Звичайна",chance:0.7,mult:1,cls:"r-common"},
   {key:"rare",name:"🔵 Рідкісна",chance:0.25,mult:1.5,cls:"r-rare"},
   {key:"legend",name:"🟣 Легендарна",chance:0.05,mult:3,cls:"r-legend"}
 ];
 
-function rollRarity(bonus=0){
-  let r=Math.random()-bonus;
-  let acc=0;
-  for(let x of rarityTable){
-    acc+=x.chance;
-    if(r<=acc) return x;
-  }
-  return rarityTable[0];
-}
-
-/* === DATA === */
 const locations=[
   {name:"🌊 Озеро",level:1,fish:[{name:"Карась",weight:10},{name:"Окунь",weight:9}]},
   {name:"🌿 Ставок",level:3,fish:[{name:"Лин",weight:8},{name:"Карась великий",weight:7}]},
@@ -157,35 +140,44 @@ const locations=[
   {name:"🌊 Океан",level:15,fish:[{name:"Акула",weight:1}]}
 ];
 
-/* === NAV === */
+/* ===== CORE ===== */
+function rollRarity(){
+  let r=Math.random(),a=0;
+  for(let x of rarityTable){a+=x.chance;if(r<=a)return x}
+  return rarityTable[0];
+}
 function openScreen(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
 
-/* === CATCH === */
 function catchFish(){
   const rod=rods[player.rod];
+  const now=Date.now();
+
+  let tonChance=(rod.legendary?0.10:0)+(player.gear.landingNet?0.05:0);
+  if(tonChance>0 && now-player.lastTonCatch>86400000 && Math.random()<tonChance){
+    player.lastTonCatch=now;
+    player.tonFish++;
+    document.getElementById("catch").innerText="💎 Спіймав TON-рибу!";
+    saveGame();render();return;
+  }
+
   let power=rod.power;
   if(player.bait>0){power++;player.bait--}
   if(player.feed>0){power++;player.feed--}
 
-  let rarityBonus=player.feed>0?0.05:0;
-  const rarity=rollRarity(rarityBonus);
-
+  const rarity=rollRarity();
   const loc=locations[player.location];
-  const index=Math.min(Math.floor(Math.random()*power),loc.fish.length-1);
-  const baseFish=loc.fish[index];
-
-  const key=`${baseFish.name}|${rarity.key}`;
+  const fish=loc.fish[Math.min(Math.floor(Math.random()*power),loc.fish.length-1)];
+  const key=`${fish.name}|${rarity.key}`;
   player.fish[key]=(player.fish[key]||0)+1;
 
   document.getElementById("catch").innerHTML=
-    `🎣 ${baseFish.name} <span class="${rarity.cls}">(${rarity.name})</span>`;
+    `🎣 ${fish.name} <span class="${rarity.cls}">(${rarity.name})</span>`;
   saveGame();render();
 }
 
-/* === SELL === */
 function sellFish(){
   let coins=0;
   for(let k in player.fish){
@@ -197,30 +189,51 @@ function sellFish(){
     }
   }
   player.coins+=coins;
-  player.fish={};
-  if(player.coins>=player.level*10) player.level++;
-  document.getElementById("catch").innerText=`💰 +${coins} монет`;
+  player.tons+=player.tonFish;
+  player.fish={}; player.tonFish=0;
+  document.getElementById("catch").innerText=`💰 +${coins} 🪙 | 💎 +TON`;
   saveGame();render();
 }
 
-/* === LOCATION === */
+function buyRod(i){
+  const r=rods[i];
+  if(r.tonPrice){alert("TON підключимо окремо");return}
+  if(player.coins>=r.price){player.coins-=r.price;player.rod=i}
+  saveGame();render();
+}
+function buyBait(i){
+  const b=baitItems[i];
+  if(player.coins>=b.price){player.coins-=b.price;player.bait+=b.uses}
+  saveGame();render();
+}
+function buyFeed(i){
+  const f=feedItems[i];
+  if(player.coins>=f.price){player.coins-=f.price;player.feed+=f.casts}
+  saveGame();render();
+}
+function buyGear(id){
+  const g=gearItems.find(x=>x.id===id);
+  if(player.tons>=g.tonPrice && !player.gear[id]){
+    player.tons-=g.tonPrice;player.gear[id]=true
+  }
+  saveGame();render();
+}
 function changeLocation(i){
   if(player.level>=locations[i].level){player.location=i;openScreen("fishing")}
   saveGame();render();
 }
 
-/* === RENDER === */
 function render(){
   document.getElementById("locName").innerText=locations[player.location].name;
 
-  document.getElementById("inv").innerHTML=
-    Object.keys(player.fish).length
-      ? Object.entries(player.fish).map(([k,v])=>{
-          const [n,r]=k.split("|");
-          const rr=rarityTable.find(x=>x.key===r);
-          return `${n} <span class="${rr.cls}">(${rr.name})</span>: ${v}`;
-        }).join("<br>")
-      : "Порожньо";
+  let inv=[];
+  for(let k in player.fish){
+    const [n,r]=k.split("|");
+    const rr=rarityTable.find(x=>x.key===r);
+    inv.push(`${n} <span class="${rr.cls}">(${rr.name})</span>: ${player.fish[k]}`);
+  }
+  if(player.tonFish>0) inv.push(`💎 TON-риба: ${player.tonFish}`);
+  document.getElementById("inv").innerHTML=inv.length?inv.join("<br>"):"Порожньо";
 
   document.getElementById("locList").innerHTML=
     locations.map((l,i)=>player.level>=l.level
@@ -228,8 +241,27 @@ function render(){
       : `<button class="locked">${l.name} (lvl ${l.level})</button>`
     ).join("");
 
+  document.getElementById("shopRods").innerHTML=
+    rods.map((r,i)=>r.tonPrice
+      ? `<button class="ton">💎 ${r.name} — ${r.tonPrice} TON</button>`
+      : `<button class="gray" onclick="buyRod(${i})">${r.name} — ${r.price} 🪙</button>`
+    ).join("");
+
+  document.getElementById("shopBait").innerHTML=
+    baitItems.map((b,i)=>`<button class="gray" onclick="buyBait(${i})">${b.name} — ${b.price} 🪙 (+${b.uses})</button>`).join("");
+
+  document.getElementById("shopFeed").innerHTML=
+    feedItems.map((f,i)=>`<button class="gray" onclick="buyFeed(${i})">${f.name} — ${f.price} 🪙 (${f.casts} закидів)</button>`).join("");
+
+  document.getElementById("shopGear").innerHTML=
+    gearItems.map(g=>player.gear[g.id]
+      ? `<button class="locked">✅ ${g.name}</button>`
+      : `<button class="ton" onclick="buyGear('${g.id}')">💎 ${g.name} — ${g.tonPrice} TON (+5% TON)</button>`
+    ).join("");
+
   document.getElementById("statsText").innerHTML=
     `🪙 Монети: ${player.coins}<br>
+     💎 TON: ${player.tons}<br>
      ⭐ Рівень: ${player.level}<br>
      🎣 Вудка: ${rods[player.rod].name}`;
 }
